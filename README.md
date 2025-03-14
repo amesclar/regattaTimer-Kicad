@@ -17,8 +17,9 @@
 
 ## Key Features
 + on/off button to save battery
-+ push buttons for; buzzer, 2 minute, 3 minute and 5 minute timers
-+ onboard button and buzzer for testing
++ buzzer button for direct connection
++ timer buttons for; 1 minute, 2 minute, 3 minute and 5 minute durations
++ pc board buttons and buzzer for testing
 
 ## Completed Project
 | Buttons | Buzzer | Wiring |
@@ -59,6 +60,10 @@
 | - | - | - |
 |![PC Board](images/photo-wiring0.JPG) | ![PC Board](images/photo-wiring1.JPG) |![PC Board](images/photo-wiring2.JPG) |
 
+| PCB Way Board |
+| - |
+| ![PC Board](images/pcbway-circuitBoard0.png) |
+
 ## Parts list
 Total cost approximately $200 (will have extra parts)
 |item|quantity|description|[Ref URL](reference url)|(approx USD price)|
@@ -90,6 +95,9 @@ Total cost approximately $200 (will have extra parts)
 |3|Option 1 - Cordless Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0C2CJ1FHX/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1)|19|
 |4|Option 2 - Fanttik T1 Max Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0D41ZMDPD/ref=ox_sc_saved_title_1?smid=A30MIYRTO6RN4I&psc=1)|80|
 |5|IRWIN VISE-GRIP Wire Stripper|[Ref URL](https://www.amazon.com/dp/B000OQ21CA?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1)|25|
+
+## References
++ [PCB Way - PC Board Fabricator (~1 week for delivery)](https://www.pcbway.com/orderonline.aspx)
 
 ## Ubuntu install notes
 >FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly.
