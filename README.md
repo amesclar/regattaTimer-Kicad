@@ -60,9 +60,9 @@
 | - | - | - |
 |![PC Board](images/photo-wiring0.JPG) | ![PC Board](images/photo-wiring1.JPG) |![PC Board](images/photo-wiring2.JPG) |
 
-| PCB Way Board |
-| - |
-| ![PC Board](images/pcbway-circuitBoard0.png) |
+| PCB Way Board | | |
+| - | - | - |
+| ![PC Board](images/pcbway-circuitBoard0.png) | | |
 
 ## Parts list
 Total cost approximately $200 (will have extra parts)
@@ -99,7 +99,19 @@ Total cost approximately $200 (will have extra parts)
 ## References
 + [PCB Way - PC Board Fabricator (~1 week for delivery)](https://www.pcbway.com/orderonline.aspx)
 
-## Ubuntu install notes
+## KiCad notes
++ When creating pc board export files make sure to;
+	+ Create Edge.Cuts layer by selecting edge cut and drawing rectangle.
+	+ Select Edge.Cuts layer when creating Gerber file
+	+ Create drill files (see images below)
++ Kicad has been stable and has a large library of items with predefined footprints. It's sometimes hard to find the specific item of interest.
++ Initially tried Fritzig. It was not stable and it would intermittently drop items from drawings.
+
+| Edge.Cut Create Option | Gerber & Drill File Export | Gerber Export File Options |
+| - | - | - |
+| ![Edge.Cut menu](images/KiCad-Gerber+Drill-menu-EdgeCut.png) |![Drill file export](images/KiCad-Gerber+Drill-fileCreation.png) | ![Drill file export](images/KiCad-Gerber-options.png) |
+
+## Arduino IDE 2.x - Ubuntu Install Notes
 >FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly.
 
 From (https://askubuntu.com/questions/1515105/sandbox-problems-with-arduino-ides-with-24-04)
