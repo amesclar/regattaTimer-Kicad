@@ -60,9 +60,9 @@
 | - | - | - |
 |![PC Board](images/photo-wiring0.JPG) | ![PC Board](images/photo-wiring1.JPG) |![PC Board](images/photo-wiring2.JPG) |
 
-| PCB Way Board |
-| - |
-| ![PC Board](images/pcbway-circuitBoard0.png) |
+| PCB Way Board | | |
+| - | - | - |
+| ![PC Board](images/pcbway-circuitBoard0.png) | | |
 
 ## Parts list
 Total cost approximately $200 (will have extra parts)
