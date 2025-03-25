@@ -44,9 +44,9 @@
 | Blue / PUrple | 1 Min | Not Used |
 
 ## Images
-| Breadboard | Schematic | PC Board |
-| - | - | - |
-|![Breadboard](images/sailingRegattaTimer_bb.png) |![Schematic](images/sailingRegattaTimer_schem.svg) |![PC Board](images/sailingRegattaTimer_pcb.svg) |
+| Breadboard | Schematic | PC Board | KiCad 3D Image |
+| - | - | - | - |
+|![Breadboard](images/sailingRegattaTimer_bb.png) |![Schematic](images/sailingRegattaTimer_schem.jpg) |![PC Board](images/sailingRegattaTimer_pcb.jpg) | ![PC Board](images/sailingRegattaTimer3D.jpg) |
 
 ### Terminal Block Configuration
 ![Terminal Block Configuration](images/terminalBlockConfig-mermaid.svg)
@@ -62,7 +62,7 @@
 
 | PCB Way Board | | |
 | - | - | - |
-| ![PC Board](images/pcbway-circuitBoard0.png) | | |
+| ![PC Board](images/pcbway-circuitBoard0.png) |  | |
 
 ## Parts list
 Total cost approximately $200 (will have extra parts)
