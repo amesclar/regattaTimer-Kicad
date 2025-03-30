@@ -4,17 +4,18 @@
 - [sailingRegattaTimer](#sailingregattatimer)
 	- [Key Features](#key-features)
 	- [Completed Project](#completed-project)
+	- [Sponsorship](#sponsorship)
 	- [Assembly Notes](#assembly-notes)
 	- [Connector Wiring](#connector-wiring)
 	- [Images](#images)
-		- [Terminal Block Configuration](#terminal-block-configuration)
+	- [Terminal Block Configuration](#terminal-block-configuration)
 	- [Photos](#photos)
 	- [Parts list](#parts-list)
 	- [Tools](#tools)
-	- [Ubuntu install notes](#ubuntu-install-notes)
+	- [KiCad notes](#kicad-notes)
+	- [Arduino IDE 2.x - Ubuntu Install Notes](#arduino-ide-2x-ubuntu-install-notes)
 
 <!-- /TOC -->
-
 ## Key Features
 + on/off button to save battery
 + buzzer button for direct connection
@@ -25,6 +26,14 @@
 | Buttons | Buzzer | Wiring |
 | - | - | - |
 |![BoxButtons](images/photo-boxButtons.JPG) |![BoxBuzzer](images/photo-boxBuzzer.JPG) |![BoxWiring](images/photo-boxWiring.JPG) |
+
+## Sponsorship
++ Big shout out to PCB Way for their support on this project.
++ Customer support is great; I needed to halt production due to an incomplete design (my mistake).
++ Turn-around time from design submittal to pc board delivery was less than one week for US West coast delivery.
++ See [KiCad notes](#kicad-notes) for PCB Way plug-in installation, makes ordering PC board "one button push"
+
++ [PCB Way - PC Board Fabricator](https://www.pcbway.com/orderonline.aspx)
 
 ## Assembly Notes
 | Area | Description |
@@ -48,21 +57,21 @@
 | - | - | - | - |
 |![Breadboard](images/sailingRegattaTimer_bb.png) |![Schematic](images/sailingRegattaTimer_schem.jpg) |![PC Board](images/sailingRegattaTimer_pcb.jpg) | ![PC Board](images/sailingRegattaTimer3D.jpg) |
 
-### Terminal Block Configuration
+## Terminal Block Configuration
 ![Terminal Block Configuration](images/terminalBlockConfig-mermaid.svg)
 
 ## Photos
-| Breadboard 0 | Breadboard 1 | Breadboard 2 |
+| PC Board (PCB Way)| PC Board with Parts | |
 | - | - | - |
-|![PC Board](images/breadboard-0.JPG) | ![PC Board](images/breadboard-1.JPG) |![PC Board](images/breadboard-2.JPG) |
+| ![PC Board](images/pcbway-circuitBoard0.png) | ![PC Board](images/photo-pcboardAndParts.jpg) | |
 
 | ProtoBoard 0 | ProtoBoard 1 | ProtoBoard 2 |
 | - | - | - |
 |![PC Board](images/photo-wiring0.JPG) | ![PC Board](images/photo-wiring1.JPG) |![PC Board](images/photo-wiring2.JPG) |
 
-| PCB Way Board | | |
+| Breadboard 0 | Breadboard 1 | Breadboard 2 |
 | - | - | - |
-| ![PC Board](images/pcbway-circuitBoard0.png) |  | |
+|![PC Board](images/breadboard-0.JPG) | ![PC Board](images/breadboard-1.JPG) |![PC Board](images/breadboard-2.JPG) |
 
 ## Parts list
 Total cost approximately $200 (will have extra parts)
@@ -92,24 +101,17 @@ Total cost approximately $200 (will have extra parts)
 |---|---|---|---|
 |1|Arduino IDE|[Ref URL](https://www.arduino.cc/en/software)|0|
 |2|KiCad PC Board Editor|[Ref URL](https://www.kicad.org/download/)|0|
-|3|Option 1 - Cordless Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0C2CJ1FHX/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1)|19|
-|4|Option 2 - Fanttik T1 Max Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0D41ZMDPD/ref=ox_sc_saved_title_1?smid=A30MIYRTO6RN4I&psc=1)|80|
+|4|Fanttik T1 Max Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0D41ZMDPD/ref=ox_sc_saved_title_1?smid=A30MIYRTO6RN4I&psc=1)|80|
 |5|IRWIN VISE-GRIP Wire Stripper|[Ref URL](https://www.amazon.com/dp/B000OQ21CA?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1)|25|
 
-## References
-+ [PCB Way - PC Board Fabricator (~1 week for delivery)](https://www.pcbway.com/orderonline.aspx)
-
 ## KiCad notes
-+ When creating pc board export files make sure to;
-	+ Create Edge.Cuts layer by selecting edge cut and drawing rectangle.
-	+ Select Edge.Cuts layer when creating Gerber file
-	+ Create drill files (see images below)
++ When ordering pc board use PCB Way menu button
 + Kicad has been stable and has a large library of items with predefined footprints. It's sometimes hard to find the specific item of interest.
-+ Initially tried Fritzig. It was not stable and it would intermittently drop items from drawings.
++ Note, I initially tried Fritzig. It was not stable and it would intermittently drop items from drawings.
 
-| Edge.Cut Create Option | Gerber & Drill File Export | Gerber Export File Options |
-| - | - | - |
-| ![Edge.Cut menu](images/KiCad-Gerber+Drill-menu-EdgeCut.png) |![Drill file export](images/KiCad-Gerber+Drill-fileCreation.png) | ![Drill file export](images/KiCad-Gerber-options.png) |
+| KiCad Plugin Manager | PCB Way Plugin | PCB Way Toolbar Icon | Edge.Cut Create Option | Gerber & Drill File Export |
+| - | - | - | - | - |
+| ![KiCad Plugin Manager](images/KiCad-Plugin-Management.png) | ![KiCad Plugin Manager](images/KiCad-plugin-PCBWay.png) | ![KiCad Plugin Manager](images/KiCad-toolbarItem-PCBWay.png) | ![Edge.Cut menu](images/KiCad-Gerber+Drill-menu-EdgeCut.png) |![Drill file export](images/KiCad-Gerber+Drill-fileCreation.png) | ![Drill file export](images/KiCad-Gerber-options.png) |
 
 ## Arduino IDE 2.x - Ubuntu Install Notes
 >FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly.
