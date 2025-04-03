@@ -2932,6 +2932,12 @@
 		(uuid "cc0c58d7-7a75-479d-92ba-e975b9ebf2cc")
 	)
 	(junction
+		(at 58.42 120.65)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "cd96edb3-e101-47b3-91b0-0de72e4dfb92")
+	)
+	(junction
 		(at 91.44 76.2)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3171,7 +3177,7 @@
 	)
 	(wire
 		(pts
-			(xy 49.53 85.09) (xy 49.53 113.03)
+			(xy 49.53 85.09) (xy 49.53 120.65)
 		)
 		(stroke
 			(width 0)
@@ -3401,6 +3407,16 @@
 	)
 	(wire
 		(pts
+			(xy 64.77 110.49) (xy 58.42 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4341f413-1eb1-49e5-b255-9bdaadc0cffb")
+	)
+	(wire
+		(pts
 			(xy 68.58 60.96) (xy 68.58 73.66)
 		)
 		(stroke
@@ -3451,7 +3467,7 @@
 	)
 	(wire
 		(pts
-			(xy 45.72 115.57) (xy 45.72 81.28)
+			(xy 45.72 123.19) (xy 45.72 81.28)
 		)
 		(stroke
 			(width 0)
@@ -3521,6 +3537,16 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 110.49) (xy 58.42 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4fa21bad-21f7-4634-85a5-dba546bc460d")
+	)
+	(wire
+		(pts
 			(xy 66.04 95.25) (xy 81.28 95.25)
 		)
 		(stroke
@@ -3528,6 +3554,26 @@
 			(type default)
 		)
 		(uuid "4fe74c1c-dc99-415d-8d1c-e97c3a579af6")
+	)
+	(wire
+		(pts
+			(xy 62.23 118.11) (xy 64.77 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5065768d-de5f-4867-a5bb-a22fd3988472")
+	)
+	(wire
+		(pts
+			(xy 58.42 120.65) (xy 64.77 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "524355f4-0ca7-4e8a-833f-8fa5cb113552")
 	)
 	(wire
 		(pts
@@ -3561,7 +3607,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 102.87) (xy 60.96 102.87)
+			(xy 60.96 102.87) (xy 66.04 102.87)
 		)
 		(stroke
 			(width 0)
@@ -3781,7 +3827,7 @@
 	)
 	(wire
 		(pts
-			(xy 49.53 113.03) (xy 60.96 113.03)
+			(xy 49.53 120.65) (xy 58.42 120.65)
 		)
 		(stroke
 			(width 0)
@@ -4131,6 +4177,16 @@
 	)
 	(wire
 		(pts
+			(xy 62.23 107.95) (xy 62.23 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c774cbd6-37e2-4192-b3fd-f9bbf6e49a5b")
+	)
+	(wire
+		(pts
 			(xy 176.53 63.5) (xy 189.23 63.5)
 		)
 		(stroke
@@ -4211,7 +4267,7 @@
 	)
 	(wire
 		(pts
-			(xy 60.96 115.57) (xy 45.72 115.57)
+			(xy 64.77 123.19) (xy 45.72 123.19)
 		)
 		(stroke
 			(width 0)
@@ -4298,6 +4354,16 @@
 			(type default)
 		)
 		(uuid "dfff6af7-c98b-4c96-a5e6-1013d7a6424d")
+	)
+	(wire
+		(pts
+			(xy 64.77 107.95) (xy 62.23 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e162eb73-8fc2-4ade-a055-5f7a5c1acb45")
 	)
 	(wire
 		(pts
@@ -5414,7 +5480,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x04_Socket")
-		(at 66.04 110.49 0)
+		(at 69.85 118.11 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5423,7 +5489,7 @@
 		(fields_autoplaced yes)
 		(uuid "07ed978b-b84a-461b-b8e9-77afac987d40")
 		(property "Reference" "J8-Pololu-VReg1"
-			(at 67.31 110.4899 0)
+			(at 71.12 118.1099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5432,7 +5498,7 @@
 			)
 		)
 		(property "Value" "Conn_01x04_Socket"
-			(at 67.31 113.0299 0)
+			(at 71.12 120.6499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5442,7 +5508,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
-			(at 66.04 110.49 0)
+			(at 69.85 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5451,7 +5517,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 66.04 110.49 0)
+			(at 69.85 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5460,7 +5526,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated"
-			(at 66.04 110.49 0)
+			(at 69.85 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5921,6 +5987,77 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x02_Socket")
+		(at 69.85 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "548b6e33-c4b9-497b-9760-8d4fdf197b51")
+		(property "Reference" "J10-12v-In"
+			(at 71.12 109.2199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x02_Socket"
+			(at 71.12 110.4899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical"
+			(at 69.85 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 69.85 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated"
+			(at 69.85 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "97080e14-ca4c-490f-8e24-ff0c04714e10")
+		)
+		(pin "2"
+			(uuid "d6552f0d-7032-45a2-b6bb-133c3fc8255d")
+		)
+		(instances
+			(project "sailingRegattaTimer"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "J10-12v-In")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_01x02_Socket")
 		(at 176.53 146.05 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6065,7 +6202,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "639ad7a4-7ba3-4298-85a6-f708235aaf53")
-		(property "Reference" "D1"
+		(property "Reference" "D1-LED1"
 			(at 168.5925 121.92 0)
 			(effects
 				(font
@@ -6079,6 +6216,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O1.27mm_Z1.6mm"
@@ -6117,7 +6255,7 @@
 		(instances
 			(project ""
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
-					(reference "D1")
+					(reference "D1-LED1")
 					(unit 1)
 				)
 			)
