@@ -175,7 +175,7 @@ bool soundBuzzer(int timer) {
 
 bool logMsg(String msg) {
   if (debug) {
-    Serial.println(msg);
+    Serial.println(String(millis()) + "," + msg);
   }
   return true;
 }
