@@ -8,13 +8,13 @@
 // constants won't change. They're used here to set pin numbers:
 const bool debug = 1;            // serial out
 const int buttonPinTimer1 = 2;   // 1min timer
-const int buttonPinTimer2 = 7;   // 3min timer
+const int buttonPinTimer2 = 7;   // 2min timer
 const int buttonPinTimer3 = 8;   // 3min timer
 const int buttonPinTimer5 = 12;  // 5min timer
 const int ledPin = 4;           // the number of the LED pin
 // const int buzzerPin = 2;              // buzzer pin - output
-const int buzzerOnLongMillis = 400;   // The higher the number, the slower the timing.
-const int buzzerOnShortMillis = 200;  // The higher the number, the slower the timing.
+const int buzzerOnLongMillis = 400;   
+const int buzzerOnShortMillis = 200;  
 
 // variable for reading the pushbutton status
 int buttonStateTimer1 = 0;

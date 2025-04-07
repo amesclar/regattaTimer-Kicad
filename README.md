@@ -45,12 +45,12 @@
 | box buttons / lights | 4" from left edge, 1.5" down, 1.5" center spacing |
 
 ## Connector Wiring
-| Wires | Connector 1 - Timers | Connector 2 - Other |
-| - | - | - |
-| Black / Red | 5 Min | 5v Light |
-| White / Yellow | 3 Min | Reset |
-| Orange / Green | 2 Min | 12v In |
-| Blue / PUrple | 1 Min | Not Used |
+| Black | Red | Male 1 - Timers | Male 2 - Other |
+| - | - | - | - |
+| Black | Red | 5 Min | 5v Light |
+| White | Yellow | 3 Min | Reset |
+| Orange | Green | 2 Min | 12v In |
+| Blue | Purple | 1 Min | Not Used |
 
 ## Images
 | Breadboard | Schematic | PC Board | KiCad 3D Image |
