@@ -45,12 +45,13 @@
 | box buttons / lights | 4" from left edge, 1.5" down, 1.5" center spacing |
 
 ## Connector Wiring
-| Wires | Connector 1 - Timers | Connector 2 - Other |
-| - | - | - |
-| Black / Red | 5 Min | 5v Light |
-| White / Yellow | 3 Min | Reset |
-| Orange / Green | 2 Min | 12v In |
-| Blue / PUrple | 1 Min | Not Used |
+Female 2 wire to male 8 wire
+| Black | Red | Male 1 - Timers | Male 2 - Other |
+| - | - | - | - |
+| Black | Red | 5 Min | 5v Light |
+| White | Yellow | 3 Min | Reset |
+| Orange | Green | 2 Min | 12v In |
+| Blue | Purple | 1 Min | Not Used |
 
 ## Images
 | Breadboard | Schematic | PC Board | KiCad 3D Image |
@@ -100,9 +101,10 @@ Total cost approximately $200 (will have extra parts)
 |item|description|[Ref URL](reference url)|(approx USD price)|
 |---|---|---|---|
 |1|Arduino IDE|[Ref URL](https://www.arduino.cc/en/software)|0|
-|2|KiCad PC Board Editor|[Ref URL](https://www.kicad.org/download/)|0|
-|4|Fanttik T1 Max Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0D41ZMDPD/ref=ox_sc_saved_title_1?smid=A30MIYRTO6RN4I&psc=1)|80|
-|5|IRWIN VISE-GRIP Wire Stripper|[Ref URL](https://www.amazon.com/dp/B000OQ21CA?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1)|25|
+|2|Fritzig diagram, schematic, board layout|[Ref URL](https://fritzing.org/download/)|0|
+|3|Fanttik T1 Max Soldering Iron Kit|[Ref URL](https://www.amazon.com/gp/product/B0D41ZMDPD/ref=ox_sc_saved_title_1?smid=A30MIYRTO6RN4I&psc=1)|80|
+|4|IRWIN VISE-GRIP Wire Stripper|[Ref URL](https://www.amazon.com/dp/B000OQ21CA?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1)|25|
+|5|KOTTO Strong Suction Smoke Absorber|[Ref URL](https://www.amazon.com/dp/B07ZHH5H7N?ref=ppx_yo2ov_dt_b_fed_asin_title)|80|
 
 ## KiCad notes
 + When ordering pc board use PCB Way menu button
