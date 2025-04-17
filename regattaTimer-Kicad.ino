@@ -1,6 +1,7 @@
 /*
   inspirsed by https://www.instructables.com/Build-your-own-Coutndown-Regatta-Ollie-Box/
 
+20250415-124439 - xml log format to support test framework
 20250309-125820 - buzzer on move to 1Min timer  
 
 */
@@ -11,10 +12,10 @@ const int buttonPinTimer1 = 2;   // 1min timer
 const int buttonPinTimer2 = 7;   // 2min timer
 const int buttonPinTimer3 = 8;   // 3min timer
 const int buttonPinTimer5 = 12;  // 5min timer
-const int ledPin = 4;           // the number of the LED pin
+const int ledPin = 4;            // the number of the LED pin
 // const int buzzerPin = 2;              // buzzer pin - output
-const int buzzerOnLongMillis = 400;   
-const int buzzerOnShortMillis = 200;  
+const int buzzerOnLongMillis = 400;
+const int buzzerOnShortMillis = 200;
 
 // variable for reading the pushbutton status
 int buttonStateTimer1 = 0;
@@ -42,7 +43,7 @@ DURATION  TIME TO START   SOUND SIGNAL          {elapsed sec, long, short}
 // elapsed sec, longCount, shortCount
 // 1 minute
 unsigned long timer1Array[10][3] = {
-  {0,1,0}, {30,0,3}, {40,0,2}, {50,0,1}, {55,0,1}, {56,0,1}, {57,0,1}, {58,0,1}, {59,0,1}, {60,1,0}
+  { 0, 1, 0 }, { 30, 0, 3 }, { 40, 0, 2 }, { 50, 0, 1 }, { 55, 0, 1 }, { 56, 0, 1 }, { 57, 0, 1 }, { 58, 0, 1 }, { 59, 0, 1 }, { 60, 1, 0 }
 };
 // 2 minute
 unsigned long timer2Array[12][3] = {
@@ -71,7 +72,27 @@ void setup() {
   Serial.begin(9600);
 }
 
+// log message xml template
+// <?xml version="1.0" encoding="UTF-8"?>
+// <OneMinute>
+//   <Buzzer>1</>
+//   <Buzzer>2</>
+//   <Buzzer>3</>
+//   </>
+//   <TwoMinute>
+//     <Buzzer>4</>
+//     <Buzzer>5</>
+//     <Buzzer>6</>
+//     </>
+
+bool headerOut = true;
+
 void loop() {
+
+  if (headerOut) {
+    logMsg("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    headerOut = false;
+  }
   // read the state of the pushbutton value:
   buttonStateTimer1 = digitalRead(buttonPinTimer1);
   buttonStateTimer2 = digitalRead(buttonPinTimer2);
@@ -80,28 +101,28 @@ void loop() {
 
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if (buttonStateTimer1 == HIGH) {
-    logMsg("1Min-start");
+    logMsg("<OneMinute>");
     // rows - zero based row count
     execBuzzer(timer1Array, 9, 3);
-    logMsg("1Min-end");
+    logMsg("</>");
 
   } else if (buttonStateTimer2 == HIGH) {
-    logMsg("2Min-start");
+    logMsg("<TwoMinute>");
     // rows - zero based row count
     execBuzzer(timer2Array, 11, 3);
-    logMsg("2Min-end");
+    logMsg("</>");
 
   } else if (buttonStateTimer3 == HIGH) {
-    logMsg("3Min-start");
+    logMsg("<ThreeMinute>");
     // rows - zero based row count
     execBuzzer(timer3Array, 12, 3);
-    logMsg("3Min-end");
+    logMsg("</>");
 
   } else if (buttonStateTimer5 == HIGH) {
-    logMsg("5Min-start");
+    logMsg("<FiveMinute>");
     // rows - zero based row count
     execBuzzer(timer5Array, 3, 3);
-    logMsg("5Min-end");
+    logMsg("</>");
 
   } else {
     // turn LED off:
@@ -142,7 +163,7 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
       // Serial.println(String(buzzerLongCount));
 
       for (int i = 0; i < buzzerLongCount; i++) {
-        logMsg("buzzerLong-" + String(i3Count) + "," + String(timeArray[i3Count][0]) + "," + String(buzzerLongCount) + "," + String(i));
+        // logMsg("buzzerLong-" + String(i3Count) + "," + String(timeArray[i3Count][0]) + "," + String(buzzerLongCount) + "," + String(i));
         digitalWrite(ledPin, HIGH);  //light
         soundBuzzer(buzzerOnLongMillis);
         delay(buzzerDelayMult * buzzerOnLongMillis);
@@ -152,7 +173,7 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
       buzzerShortCount = timeArray[i3Count][2];
 
       for (int i = 0; i < buzzerShortCount; i++) {
-        logMsg("buzzerShort-" + String(buzzerShortCount) + "," + String(i));
+        // logMsg("buzzerShort-" + String(buzzerShortCount) + "," + String(i));
         digitalWrite(ledPin, HIGH);  //light
         soundBuzzer(buzzerOnShortMillis);
         delay(buzzerDelayMult * buzzerOnShortMillis);
@@ -168,6 +189,7 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
 
 bool soundBuzzer(int timer) {
   digitalWrite(ledPin, HIGH);
+  logMsg("<Buzzer>" + String(millis()) + "</>");
   delay(timer);
   digitalWrite(ledPin, LOW);
   return true;
@@ -175,7 +197,7 @@ bool soundBuzzer(int timer) {
 
 bool logMsg(String msg) {
   if (debug) {
-    Serial.println(String(millis()) + "," + msg);
+    Serial.println(msg);
   }
   return true;
 }
