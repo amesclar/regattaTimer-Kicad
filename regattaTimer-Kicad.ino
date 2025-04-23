@@ -2,7 +2,7 @@
   inspirsed by https://www.instructables.com/Build-your-own-Coutndown-Regatta-Ollie-Box/
 
 20250415-124439 - xml log format to support test framework
-20250309-125820 - buzzer on move to 1Min timer  
+20250309-125820 - buzzer on move to 1Min timer
 
 */
 
@@ -89,10 +89,6 @@ bool headerOut = true;
 
 void loop() {
 
-  if (headerOut) {
-    logMsg("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    headerOut = false;
-  }
   // read the state of the pushbutton value:
   buttonStateTimer1 = digitalRead(buttonPinTimer1);
   buttonStateTimer2 = digitalRead(buttonPinTimer2);
@@ -104,25 +100,25 @@ void loop() {
     logMsg("<OneMinute>");
     // rows - zero based row count
     execBuzzer(timer1Array, 9, 3);
-    logMsg("</>");
+    logMsg("</OneMinute>");
 
   } else if (buttonStateTimer2 == HIGH) {
     logMsg("<TwoMinute>");
     // rows - zero based row count
     execBuzzer(timer2Array, 11, 3);
-    logMsg("</>");
+    logMsg("</TwoMinute>");
 
   } else if (buttonStateTimer3 == HIGH) {
     logMsg("<ThreeMinute>");
     // rows - zero based row count
     execBuzzer(timer3Array, 12, 3);
-    logMsg("</>");
+    logMsg("</ThreeMinute>");
 
   } else if (buttonStateTimer5 == HIGH) {
     logMsg("<FiveMinute>");
     // rows - zero based row count
     execBuzzer(timer5Array, 3, 3);
-    logMsg("</>");
+    logMsg("</FiveMinute>");
 
   } else {
     // turn LED off:
@@ -189,7 +185,7 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
 
 bool soundBuzzer(int timer) {
   digitalWrite(ledPin, HIGH);
-  logMsg("<Buzzer>" + String(millis()) + "</>");
+  logMsg("<Buzzer>" + String(millis()) + "</Buzzer>");
   delay(timer);
   digitalWrite(ledPin, LOW);
   return true;

@@ -5995,7 +5995,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "548b6e33-c4b9-497b-9760-8d4fdf197b51")
-		(property "Reference" "J10-12v-In"
+		(property "Reference" "J10-12v-In1"
 			(at 71.12 109.2199 0)
 			(effects
 				(font
@@ -6050,7 +6050,7 @@
 		(instances
 			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
-					(reference "J10-12v-In")
+					(reference "J10-12v-In1")
 					(unit 1)
 				)
 			)
