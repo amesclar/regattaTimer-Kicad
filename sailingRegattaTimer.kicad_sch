@@ -3663,9 +3663,9 @@
 		)
 		(uuid "ff0406a0-30fa-4087-8e52-712fb3648ec2")
 	)
-	(text "1M Blue/Purple"
+	(text "1M Blue\nPurple"
 		(exclude_from_sim no)
-		(at 145.542 99.314 0)
+		(at 143.51 100.584 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3674,9 +3674,9 @@
 		)
 		(uuid "4fbc9272-84ea-42e9-a9ca-4867860b387d")
 	)
-	(text "2M-Green/Orange"
+	(text "2M Green\nOrange"
 		(exclude_from_sim no)
-		(at 145.034 93.726 0)
+		(at 143.764 95.25 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3685,9 +3685,9 @@
 		)
 		(uuid "65ccdbd2-e782-4821-b8ae-9e4ec9b3ecf2")
 	)
-	(text "3M-White/Yellow"
+	(text "3M White\nYellow"
 		(exclude_from_sim no)
-		(at 145.034 89.154 0)
+		(at 143.764 90.424 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3696,9 +3696,9 @@
 		)
 		(uuid "83a63b73-13fb-445b-8220-4a1fec1694b7")
 	)
-	(text "5M-Black/Red"
+	(text "5M Black\nRed"
 		(exclude_from_sim no)
-		(at 144.78 84.074 0)
+		(at 143.764 85.344 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4515,7 +4515,7 @@
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
-		(on_board yes)
+		(on_board no)
 		(dnp no)
 		(uuid "ab2764c4-2776-42ab-a2de-24878edebabe")
 		(property "Reference" "A1"
@@ -4525,6 +4525,7 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
 		(property "Value" "Arduino_UNO_R3"
@@ -4534,6 +4535,7 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "Module:Arduino_UNO_R3"
