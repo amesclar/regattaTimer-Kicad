@@ -59,6 +59,23 @@ unsigned long timer5Array[4][3] = {
   { 0 * 60, 1, 0 }, { 1 * 60, 1, 0 }, { 4 * 60, 1, 0 }, { 5 * 60, 1, 0 }
 };
 
+bool soundBuzzer(int timer) {
+  digitalWrite(ledPin, HIGH);
+  delay(timer);
+  digitalWrite(ledPin, LOW);
+  return true;
+}
+
+String prepLogMsg(unsigned long currentMillis, int i, int i3Count, int timeArrayI3Count) {
+  return String("<millis>" + String(currentMillis) + "</millis>" + "<i>" + String(i) + "</i>" + "<i3Count>" + String(i3Count) + "</i3Count>" + "<timeArrayI3Count>" + String(timeArrayI3Count) + "</timeArrayI3Count>");
+}
+
+bool logMsg(String msg) {
+  if (debug) {
+    Serial.println(msg);
+  }
+  return true;
+}
 
 void setup() {
   // initialize the LED pin as an output:
@@ -68,22 +85,10 @@ void setup() {
   pinMode(buttonPinTimer2, INPUT);
   pinMode(buttonPinTimer3, INPUT);
   pinMode(buttonPinTimer5, INPUT);
+
   // initialize serial output
   Serial.begin(9600);
 }
-
-// log message xml template
-// <?xml version="1.0" encoding="UTF-8"?>
-// <OneMinute>
-//   <Buzzer>1</>
-//   <Buzzer>2</>
-//   <Buzzer>3</>
-//   </>
-//   <TwoMinute>
-//     <Buzzer>4</>
-//     <Buzzer>5</>
-//     <Buzzer>6</>
-//     </>
 
 bool headerOut = true;
 
@@ -97,6 +102,12 @@ void loop() {
 
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if (buttonStateTimer1 == HIGH) {
+    
+    if (headerOut) {
+      logMsg("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      headerOut = false;
+    }
+    
     logMsg("<OneMinute>");
     // rows - zero based row count
     execBuzzer(timer1Array, 9, 3);
@@ -104,21 +115,20 @@ void loop() {
 
   } else if (buttonStateTimer2 == HIGH) {
     logMsg("<TwoMinute>");
-    // rows - zero based row count
     execBuzzer(timer2Array, 11, 3);
     logMsg("</TwoMinute>");
 
   } else if (buttonStateTimer3 == HIGH) {
     logMsg("<ThreeMinute>");
-    // rows - zero based row count
     execBuzzer(timer3Array, 12, 3);
     logMsg("</ThreeMinute>");
 
   } else if (buttonStateTimer5 == HIGH) {
     logMsg("<FiveMinute>");
-    // rows - zero based row count
     execBuzzer(timer5Array, 3, 3);
     logMsg("</FiveMinute>");
+    
+    headerOut = true;
 
   } else {
     // turn LED off:
@@ -142,9 +152,7 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
   int i3Count = 0;  // zero is button press to start sequence
   int testValue = 0;
 
-  // Serial.println("testValue,i3Count,iCount,startMillis,currentMillis,testMillis,buzzerOn");
   startMillis = millis();
-  // prevMillis = startMillis;
 
 
   while (i3Count <= rows) {
@@ -159,7 +167,8 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
       // Serial.println(String(buzzerLongCount));
 
       for (int i = 0; i < buzzerLongCount; i++) {
-        // logMsg("buzzerLong-" + String(i3Count) + "," + String(timeArray[i3Count][0]) + "," + String(buzzerLongCount) + "," + String(i));
+        // millis, i, i3Count, timeArray.i3Count
+        logMsg(prepLogMsg(currentMillis, i, i3Count, timeArray[i3Count][0]));
         digitalWrite(ledPin, HIGH);  //light
         soundBuzzer(buzzerOnLongMillis);
         delay(buzzerDelayMult * buzzerOnLongMillis);
@@ -169,7 +178,8 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
       buzzerShortCount = timeArray[i3Count][2];
 
       for (int i = 0; i < buzzerShortCount; i++) {
-        // logMsg("buzzerShort-" + String(buzzerShortCount) + "," + String(i));
+        // millis, i, i3Count, timeArray.i3Count
+        logMsg(prepLogMsg(currentMillis, i, i3Count, timeArray[i3Count][0]));
         digitalWrite(ledPin, HIGH);  //light
         soundBuzzer(buzzerOnShortMillis);
         delay(buzzerDelayMult * buzzerOnShortMillis);
@@ -181,19 +191,4 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
       currentMillis = millis();
     }
   }
-}
-
-bool soundBuzzer(int timer) {
-  digitalWrite(ledPin, HIGH);
-  logMsg("<Buzzer>" + String(millis()) + "</Buzzer>");
-  delay(timer);
-  digitalWrite(ledPin, LOW);
-  return true;
-}
-
-bool logMsg(String msg) {
-  if (debug) {
-    Serial.println(msg);
-  }
-  return true;
 }
