@@ -1,10 +1,17 @@
 /*
   inspirsed by https://www.instructables.com/Build-your-own-Coutndown-Regatta-Ollie-Box/
 
+20250824-153226 - TM1637 - 4 display time countdown
 20250415-124439 - xml log format to support test framework
-20250309-125820 - buzzer on move to 1Min timer  
+20250309-125820 - buzzer on move to 1Min timer
 
 */
+
+#include <TM1637Display.h>
+#define CLK 3
+#define DIO 5
+
+TM1637Display tm(CLK, DIO);
 
 // constants won't change. They're used here to set pin numbers:
 const bool debug = 1;            // serial out
@@ -22,6 +29,10 @@ int buttonStateTimer1 = 0;
 int buttonStateTimer2 = 0;
 int buttonStateTimer3 = 0;
 int buttonStateTimer5 = 0;
+
+int currentMin;
+int currentSec;
+int displayDigits;
 
 /*
 DURATION  TIME TO START   SOUND SIGNAL          {elapsed sec, long, short}
@@ -60,6 +71,28 @@ unsigned long timer5Array[4][3] = {
 };
 
 
+bool displayElapsedTime(unsigned long currentMillis, unsigned long startMillis, unsigned long totalTimeMin) {
+
+  unsigned long totalTimeMillis = totalTimeMin * 60 * 1000;
+
+  // display elapsed time
+  currentMin = (totalTimeMillis - (currentMillis - startMillis)) / 1000 / 60;
+  currentSec = ((totalTimeMillis - (currentMillis - startMillis)) / 1000) % 60;
+  displayDigits = (currentMin * 100) + currentSec;
+
+  // logMsg("totalTimeMin - " + String(totalTimeMin));
+  // logMsg("totalTimeMillis - " + String(totalTimeMillis));
+  // logMsg("currentMillis - " + String(currentMillis));
+  // logMsg("startMillis - " + String(startMillis));
+  // logMsg("currentMin - " + String(currentMin));
+  // logMsg("currentSec - " + String(currentSec));
+  // logMsg("displayDigits - " + String(displayDigits));
+
+  tm.showNumberDecEx(displayDigits, 0b01000000);
+
+  return true;
+}
+
 void setup() {
   // initialize the LED pin as an output:
   pinMode(ledPin, OUTPUT);
@@ -70,6 +103,9 @@ void setup() {
   pinMode(buttonPinTimer5, INPUT);
   // initialize serial output
   Serial.begin(9600);
+
+  // set brightness; 0-7
+  tm.setBrightness(2);
 }
 
 // log message xml template
@@ -101,28 +137,33 @@ void loop() {
 
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if (buttonStateTimer1 == HIGH) {
+
+    if (headerOut) {
+      logMsg("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      headerOut = false;
+    }
+
     logMsg("<OneMinute>");
     // rows - zero based row count
-    execBuzzer(timer1Array, 9, 3);
-    logMsg("</>");
+    execBuzzer(timer1Array, 9, 3, 1);
+    logMsg("</OneMinute>");
 
   } else if (buttonStateTimer2 == HIGH) {
     logMsg("<TwoMinute>");
-    // rows - zero based row count
-    execBuzzer(timer2Array, 11, 3);
-    logMsg("</>");
+    execBuzzer(timer2Array, 11, 3, 2);
+    logMsg("</TwoMinute>");
 
   } else if (buttonStateTimer3 == HIGH) {
     logMsg("<ThreeMinute>");
-    // rows - zero based row count
-    execBuzzer(timer3Array, 12, 3);
-    logMsg("</>");
+    execBuzzer(timer3Array, 12, 3, 3);
+    logMsg("</ThreeMinute>");
 
   } else if (buttonStateTimer5 == HIGH) {
     logMsg("<FiveMinute>");
-    // rows - zero based row count
-    execBuzzer(timer5Array, 3, 3);
-    logMsg("</>");
+    execBuzzer(timer5Array, 3, 3, 5);
+    logMsg("</FiveMinute>");
+
+    headerOut = true;
 
   } else {
     // turn LED off:
@@ -130,7 +171,9 @@ void loop() {
   }
 }
 
-bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
+bool execBuzzer(unsigned long timeArray[][3], int rows, int columns, int totalTimeMin) {
+  // totalTimeMin - 1,2,3,5
+
   long testMillis;
 
   unsigned long currentDelta;
@@ -150,11 +193,12 @@ bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
   startMillis = millis();
   // prevMillis = startMillis;
 
-
   while (i3Count <= rows) {
 
     currentMillis = millis();
     testMillis = (currentMillis - startMillis) - (timeArray[i3Count][0] * 1000);
+
+    displayElapsedTime(currentMillis, startMillis, totalTimeMin);
 
     if (testMillis >= testValue) {
 
