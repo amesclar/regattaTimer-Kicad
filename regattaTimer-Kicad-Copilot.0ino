@@ -1,0 +1,427 @@
+// Copilot
+// 20251203-102706
+contents=
+/*
+  Sailing Regatta Timer
+  - TM1637 display (CLK=3, DIO=5) shows MM:SS
+  - Active buzzer on pin 4 driven with a non-blocking state machine
+  - Buttons: 1min=2, 2min=7, 3min=8, 5min=12 as INPUT (hardware provides active high)
+  - Serial XML logging at 9600 baud
+  - Non-blocking design: millis() used for timing; 200ms debounce allowed after sequence start
+*/
+
+#include <Arduino.h>
+#include <TM1637Display.h>
+
+// Pins
+const uint8_t TM1637_CLK = 3;
+const uint8_t TM1637_DIO = 5;
+const uint8_t BUZZER_PIN = 4;
+
+const uint8_t BTN_1MIN = 2;
+const uint8_t BTN_2MIN = 7;
+const uint8_t BTN_3MIN = 8;
+const uint8_t BTN_5MIN = 12;
+
+// Display
+TM1637Display display(TM1637_CLK, TM1637_DIO);
+const uint8_t COLON_DOT = 0b01000000;
+
+// Serial
+const unsigned long SERIAL_BAUD = 9600;
+
+// Debounce
+const unsigned long BUTTON_DEBOUNCE_MS = 200;
+
+// Display update
+unsigned long lastDisplayUpdateMs = 0;
+const unsigned long DISPLAY_UPDATE_INTERVAL_MS = 1000;
+
+// Buzzer timing
+const unsigned long BUZZ_LONG_MS = 400;
+const unsigned long BUZZ_SHORT_MS = 150;
+const unsigned long BUZZ_GAP_MS = 150;
+
+// Timer state
+bool timerRunning = false;
+unsigned long timerStartMs = 0;
+unsigned long lastSecondTickMs = 0;
+int elapsedSeconds = 0;
+int totalDurationSeconds = 0;
+int activeSequence = 0; // 1,2,3,5
+
+// Buzzer state machine
+enum BuzzerState { BUZ_IDLE = 0, BUZ_PLAYING, BUZ_GAP };
+BuzzerState buzzerState = BUZ_IDLE;
+int buzLongRemaining = 0;
+int buzShortRemaining = 0;
+bool buzPlayingLong = false;
+unsigned long buzStateUntilMs = 0;
+bool buzzerQueued = false; // true when there is a queued sequence to start
+
+// Button last pressed (to prevent immediate retrigger while running)
+unsigned long lastButtonStartMs = 0;
+
+// Data structure for buzzer schedule
+struct BuzzEvent {
+  int seconds;    // elapsed second when event triggers
+  int longCount;  // number of long buzzes
+  int shortCount; // number of short buzzes
+};
+
+// Schedules for each sequence (static, deterministic)
+const BuzzEvent SCHEDULE_1MIN[] = {
+  {0, 1, 0},
+  {30, 0, 3},
+  {40, 0, 2},
+  {50, 0, 1},
+  {55, 0, 1},
+  {56, 0, 1},
+  {57, 0, 1},
+  {58, 0, 1},
+  {59, 0, 1},
+  {60, 1, 0}
+};
+const uint8_t SCHEDULE_1MIN_LEN = sizeof(SCHEDULE_1MIN)/sizeof(SCHEDULE_1MIN[0]);
+
+const BuzzEvent SCHEDULE_2MIN[] = {
+  {0, 2, 0},
+  {30, 1, 3},
+  {60, 1, 0},
+  {90, 0, 3},
+  {100, 0, 2},
+  {110, 0, 1},
+  {115, 0, 1},
+  {116, 0, 1},
+  {117, 0, 1},
+  {118, 0, 1},
+  {119, 0, 1},
+  {120, 1, 0}
+};
+const uint8_t SCHEDULE_2MIN_LEN = sizeof(SCHEDULE_2MIN)/sizeof(SCHEDULE_2MIN[0]);
+
+const BuzzEvent SCHEDULE_3MIN[] = {
+  {0, 3, 0},
+  {60, 2, 0},
+  {90, 1, 3},
+  {120, 1, 0},
+  {150, 0, 3},
+  {160, 0, 2},
+  {170, 0, 1},
+  {175, 0, 1},
+  {176, 0, 1},
+  {177, 0, 1},
+  {178, 0, 1},
+  {179, 0, 1},
+  {180, 1, 0}
+};
+const uint8_t SCHEDULE_3MIN_LEN = sizeof(SCHEDULE_3MIN)/sizeof(SCHEDULE_3MIN[0]);
+
+const BuzzEvent SCHEDULE_5MIN[] = {
+  {0, 1, 0},
+  {60, 1, 0},
+  {240, 1, 0},
+  {300, 1, 0}
+};
+const uint8_t SCHEDULE_5MIN_LEN = sizeof(SCHEDULE_5MIN)/sizeof(SCHEDULE_5MIN[0]);
+
+// Track next event index for active schedule
+uint8_t nextEventIndex = 0;
+const BuzzEvent* activeSchedule = nullptr;
+uint8_t activeScheduleLen = 0;
+
+// Forward declarations
+void startSequence(int sequence);
+void stopSequence();
+void checkAndTriggerEvents(int elapsedSec);
+void queueBuzzer(int longCount, int shortCount);
+void buzzerStateMachine();
+void emitStartEvent(int sequence);
+void emitBuzzerEvent(int sequence, int elapsed, int longCount, int shortCount);
+void emitEndEvent(int sequence, int totalSeconds);
+void displayMMSS(int remainingSeconds);
+void setDisplayToZero();
+
+void setup() {
+  Serial.begin(SERIAL_BAUD);
+  // Display init
+  display.setBrightness(0x0f);
+  setDisplayToZero();
+
+  // Configure pins
+  pinMode(BTN_1MIN, INPUT);
+  pinMode(BTN_2MIN, INPUT);
+  pinMode(BTN_3MIN, INPUT);
+  pinMode(BTN_5MIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  // Startup XML wrapper open
+  Serial.println(F("<testsuite name=\"SailingRegattaTimer\">"));
+  Serial.println(F("<properties><property name=\"mode\" value=\"Single Sequence\"/></properties>"));
+  Serial.println(F("<note>Sailing Regatta Timer Ready</note>"));
+}
+
+void loop() {
+  unsigned long now = millis();
+
+  // Button handling (if not running)
+  if (!timerRunning) {
+    if (digitalRead(BTN_1MIN) == HIGH) {
+      startSequence(1);
+      delay(BUTTON_DEBOUNCE_MS);
+    } else if (digitalRead(BTN_2MIN) == HIGH) {
+      startSequence(2);
+      delay(BUTTON_DEBOUNCE_MS);
+    } else if (digitalRead(BTN_3MIN) == HIGH) {
+      startSequence(3);
+      delay(BUTTON_DEBOUNCE_MS);
+    } else if (digitalRead(BTN_5MIN) == HIGH) {
+      startSequence(5);
+      delay(BUTTON_DEBOUNCE_MS);
+    }
+  }
+
+  // Display update every second
+  if (now - lastDisplayUpdateMs >= DISPLAY_UPDATE_INTERVAL_MS) {
+    lastDisplayUpdateMs = now;
+    if (timerRunning) {
+      int remaining = totalDurationSeconds - elapsedSeconds;
+      if (remaining < 0) remaining = 0;
+      displayMMSS(remaining);
+    } else {
+      setDisplayToZero();
+    }
+  }
+
+  // Timer tick: update elapsed seconds based on millis()
+  if (timerRunning) {
+    if (now - lastSecondTickMs >= 1000UL) {
+      // advance one or more seconds depending on drift
+      unsigned long elapsedTicks = (now - lastSecondTickMs) / 1000UL;
+      lastSecondTickMs += elapsedTicks * 1000UL;
+      elapsedSeconds += (int)elapsedTicks;
+
+      // For each new second (handle multiple ticks), check events for each second
+      // but here we only check current elapsedSeconds (sufficient since schedule uses seconds)
+      checkAndTriggerEvents(elapsedSeconds);
+
+      // If elapsed equals or exceeds total, log end, stop timer, display 00:00.
+      if (elapsedSeconds >= totalDurationSeconds) {
+        emitEndEvent(activeSequence, totalDurationSeconds);
+        // Stop timer but allow ongoing buzzer sequence to finish (non-blocking)
+        timerRunning = false;
+        activeSchedule = nullptr;
+        activeScheduleLen = 0;
+        nextEventIndex = 0;
+        setDisplayToZero();
+      }
+    }
+  }
+
+  // Run buzzer state machine in main loop (non-blocking)
+  buzzerStateMachine();
+}
+
+// Start a sequence if none running
+void startSequence(int sequence) {
+  if (timerRunning) return; // ignore while running
+
+  // Load schedule
+  switch (sequence) {
+    case 1:
+      activeSchedule = SCHEDULE_1MIN;
+      activeScheduleLen = SCHEDULE_1MIN_LEN;
+      totalDurationSeconds = 60;
+      break;
+    case 2:
+      activeSchedule = SCHEDULE_2MIN;
+      activeScheduleLen = SCHEDULE_2MIN_LEN;
+      totalDurationSeconds = 120;
+      break;
+    case 3:
+      activeSchedule = SCHEDULE_3MIN;
+      activeScheduleLen = SCHEDULE_3MIN_LEN;
+      totalDurationSeconds = 180;
+      break;
+    case 5:
+      activeSchedule = SCHEDULE_5MIN;
+      activeScheduleLen = SCHEDULE_5MIN_LEN;
+      totalDurationSeconds = 300;
+      break;
+    default:
+      return;
+  }
+
+  activeSequence = sequence;
+  nextEventIndex = 0;
+  elapsedSeconds = 0;
+  timerStartMs = millis();
+  lastSecondTickMs = millis();
+  lastDisplayUpdateMs = millis();
+  timerRunning = true;
+
+  // Emit start event
+  emitStartEvent(sequence);
+
+  // Immediately check for 0-second buzzer events
+  checkAndTriggerEvents(0);
+
+  // Apply 200ms debounce per spec
+  delay(BUTTON_DEBOUNCE_MS);
+}
+
+// Stop sequence (not used commonly since we stop automatically at end)
+void stopSequence() {
+  timerRunning = false;
+  activeSchedule = nullptr;
+  activeScheduleLen = 0;
+  nextEventIndex = 0;
+  setDisplayToZero();
+}
+
+// Check schedule and trigger buzzer events for given elapsed second
+void checkAndTriggerEvents(int elapsedSec) {
+  if (activeSchedule == nullptr) return;
+  // There may be multiple events at same second; iterate while nextEventIndex matches elapsedSec
+  while (nextEventIndex < activeScheduleLen && activeSchedule[nextEventIndex].seconds <= elapsedSec) {
+    const BuzzEvent &ev = activeSchedule[nextEventIndex];
+    if (ev.seconds == elapsedSec) {
+      // Queue buzzer sequence: long then short
+      if (ev.longCount > 0 || ev.shortCount > 0) {
+        queueBuzzer(ev.longCount, ev.shortCount);
+        emitBuzzerEvent(activeSequence, elapsedSec, ev.longCount, ev.shortCount);
+      }
+      nextEventIndex++;
+    } else if (activeSchedule[nextEventIndex].seconds < elapsedSec) {
+      // Missed an event (happens on coarse ticks); still trigger it to keep deterministic behavior
+      const BuzzEvent &missEv = activeSchedule[nextEventIndex];
+      if (missEv.longCount > 0 || missEv.shortCount > 0) {
+        queueBuzzer(missEv.longCount, missEv.shortCount);
+        emitBuzzerEvent(activeSequence, missEv.seconds, missEv.longCount, missEv.shortCount);
+      }
+      nextEventIndex++;
+    } else {
+      break;
+    }
+  }
+}
+
+// Queue buzzer counts (long buzzes first, then short). Non-blocking.
+void queueBuzzer(int longCount, int shortCount) {
+  // If buzzer already playing, accumulate counts so they play after current
+  buzLongRemaining += longCount;
+  buzShortRemaining += shortCount;
+  buzzerQueued = (buzLongRemaining > 0 || buzShortRemaining > 0);
+  // If buzzer is idle start immediately on next state machine run
+}
+
+// Buzzer state machine: manages play duration and gaps
+void buzzerStateMachine() {
+  unsigned long now = millis();
+
+  switch (buzzerState) {
+    case BUZ_IDLE:
+      if (buzLongRemaining > 0 || buzShortRemaining > 0) {
+        // Start next buzz (long favored)
+        if (buzLongRemaining > 0) {
+          // start long buzz
+          digitalWrite(BUZZER_PIN, HIGH);
+          buzPlayingLong = true;
+          buzLongRemaining--;
+          buzStateUntilMs = now + BUZZ_LONG_MS;
+          buzzerState = BUZ_PLAYING;
+        } else if (buzShortRemaining > 0) {
+          // start short buzz
+          digitalWrite(BUZZER_PIN, HIGH);
+          buzPlayingLong = false;
+          buzShortRemaining--;
+          buzStateUntilMs = now + BUZZ_SHORT_MS;
+          buzzerState = BUZ_PLAYING;
+        }
+      }
+      break;
+
+    case BUZ_PLAYING:
+      if (now >= buzStateUntilMs) {
+        // end current buzz
+        digitalWrite(BUZZER_PIN, LOW);
+        // if more buzzes remaining, enter gap
+        if (buzLongRemaining > 0 || buzShortRemaining > 0) {
+          buzStateUntilMs = now + BUZZ_GAP_MS;
+          buzzerState = BUZ_GAP;
+        } else {
+          // no more buzzes queued -> idle
+          buzberIdle:
+          buzzerState = BUZ_IDLE;
+          buzberIdleCleanup:
+          // ensure buzzer pin low
+          digitalWrite(BUZZER_PIN, LOW);
+        }
+      }
+      break;
+
+    case BUZ_GAP:
+      if (now >= buzStateUntilMs) {
+        // after gap, start next
+        if (buzLongRemaining > 0) {
+          digitalWrite(BUZZER_PIN, HIGH);
+          buzPlayingLong = true;
+          buzLongRemaining--;
+          buzStateUntilMs = now + BUZZ_LONG_MS;
+          buzzerState = BUZ_PLAYING;
+        } else if (buzShortRemaining > 0) {
+          digitalWrite(BUZZER_PIN, HIGH);
+          buzPlayingLong = false;
+          buzShortRemaining--;
+          buzStateUntilMs = now + BUZZ_SHORT_MS;
+          buzzerState = BUZ_PLAYING;
+        } else {
+          // nothing left, go idle
+          digitalWrite(BUZZER_PIN, LOW);
+          buzzerState = BUZ_IDLE;
+        }
+      }
+      break;
+  }
+}
+
+// XML logging helpers
+void emitStartEvent(int sequence) {
+  Serial.print(F("<testcase classname=\"StartEvent\" testsequence=\""));
+  Serial.print(sequence);
+  Serial.println(F("\" elapsed=\"0\" type=\"Start\"/>"));
+}
+
+void emitBuzzerEvent(int sequence, int elapsed, int longCount, int shortCount) {
+  Serial.print(F("<testcase classname=\"BuzzerEvent\" testsequence=\""));
+  Serial.print(sequence);
+  Serial.print(F("\" elapsed=\""));
+  Serial.print(elapsed);
+  Serial.print(F("\" type=\"Buzzer\" longcount=\""));
+  Serial.print(longCount);
+  Serial.print(F("\" shortcount=\""));
+  Serial.print(shortCount);
+  Serial.println(F("\"/>"));
+}
+
+void emitEndEvent(int sequence, int totalSeconds) {
+  Serial.print(F("<testcase classname=\"EndEvent\" testsequence=\""));
+  Serial.print(sequence);
+  Serial.print(F("\" elapsed=\""));
+  Serial.print(totalSeconds);
+  Serial.println(F("\" type=\"End\"/>"));
+}
+
+// Display helpers
+void displayMMSS(int remainingSeconds) {
+  if (remainingSeconds < 0) remainingSeconds = 0;
+  int minutes = remainingSeconds / 60;
+  int seconds = remainingSeconds % 60;
+  int value = minutes * 100 + seconds;
+  display.showNumberDecEx(value, COLON_DOT, true, 4, 0);
+}
+
+void setDisplayToZero() {
+  display.showNumberDecEx(0, COLON_DOT, true, 4, 0);
+}

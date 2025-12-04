@@ -1,40 +1,12 @@
-<!-- TOC START min:1 max:3 link:true asterisk:false update:true -->
-- [Sailing Regatta Timer - Technical Specification](#sailing-regatta-timer---technical-specification)
-  - [Hardware Components](#hardware-components)
-    - [Display](#display)
-    - [Buzzer](#buzzer)
-    - [Input Buttons](#input-buttons)
-  - [Serial Communication](#serial-communication)
-  - [Buzzer Timing](#buzzer-timing)
-    - [Buzzer Durations](#buzzer-durations)
-  - [Timer Sequences](#timer-sequences)
-    - [1-Minute Sequence (60 seconds)](#1-minute-sequence-60-seconds)
-    - [2-Minute Sequence (120 seconds)](#2-minute-sequence-120-seconds)
-    - [3-Minute Sequence (180 seconds)](#3-minute-sequence-180-seconds)
-    - [5-Minute Sequence (300 seconds)](#5-minute-sequence-300-seconds)
-  - [Software Architecture](#software-architecture)
-    - [State Management](#state-management)
-    - [Non-Blocking Design](#non-blocking-design)
-    - [Event Logging (XML Format)](#event-logging-xml-format)
-  - [Behavioral Requirements](#behavioral-requirements)
-    - [Startup](#startup)
-    - [Button Press (Timer Not Running)](#button-press-timer-not-running)
-    - [During Countdown](#during-countdown)
-    - [Buzzer Sequence Execution](#buzzer-sequence-execution)
-  - [Implementation Notes](#implementation-notes)
-    - [Libraries Required](#libraries-required)
-    - [Pin Modes](#pin-modes)
-    - [Display Format](#display-format)
-    - [Data Structures](#data-structures)
-    - [Memory Optimization](#memory-optimization)
-  - [Test Verification](#test-verification)
-  - [Design Principles](#design-principles)
-<!-- TOC END -->
-
-
 # Sailing Regatta Timer - Technical Specification
+**Note, fine tuning code iteration is/was required. These are only captured in Gemini version.**
+
+Arduino program that initiates 1min, 2min, 3min or 5min timer/buzzer sequence based on button press. Log entries for sequence start, end and each buzzer activation. Log messages should be JUnit XML format with event name, time in seconds. For start/end messages test sequence and which test should also be included.
+
+The code can be blocking; i.e. once the 1m, 2m, 3m or 5m sequence starts it will run to completion except reset interrupt.
 
 ## Hardware Components
+- external pull-down resistors for 1min, 2min, 3min, 5min buttons
 
 ### Display
 - **Type**: TM1637 4-digit 7-segment display
@@ -46,15 +18,14 @@
 ### Buzzer
 - **Pin**: 4
 - **Type**: Active buzzer
-- **Implementation**: Non-blocking state machine
 
 ### Input Buttons
-| Button Label | Pin | Function |
-|--------------|-----|----------|
-| 1min | 2 | Start 1-minute sequence |
-| 2min | 7 | Start 2-minute sequence |
-| 3min | 8 | Start 3-minute sequence |
-| 5min | 12 | Start 5-minute sequence |
+| Button Label | Pin | Function | Duration |
+|--------------|-----|----------| -------- |
+| 1min | 2 | Start 1-minute sequence | 60 seconds |
+| 2min | 7 | Start 2-minute sequence | 120 seconds |
+| 3min | 8 | Start 3-minute sequence | 180 seconds |
+| 5min | 12 | Start 5-minute sequence | 300 seconds |
 
 **Pin Mode**: INPUT (not INPUT_PULLUP)
 **Behavior**: One sequence per button press, no repeat while running
@@ -62,7 +33,7 @@
 ## Serial Communication
 - **Baud Rate**: 9600
 - **Format**: XML testcase fragments
-- **Purpose**: Event logging and test verification
+- **Purpose**: Event logging
 
 ## Buzzer Timing
 
@@ -134,15 +105,9 @@
 ## Software Architecture
 
 ### State Management
-- **Timer State**: Running or stopped
+- **Start Condition**: timer sequence begins only after a button press is detected
 - **Elapsed Time**: Tracked in seconds
-- **Buzzer State**: Non-blocking state machine with counts and indices
 - **Sequence Selection**: Stores active sequence (1, 2, 3, or 5)
-
-### Non-Blocking Design
-- Display updates every 1000ms
-- Buzzer uses state machine (no blocking delays during buzz sequences)
-- Button debounce: 200ms delay after sequence start
 
 ### Event Logging (XML Format)
 
@@ -153,7 +118,7 @@
 
 #### Buzzer Event
 ```xml
-<testcase classname="BuzzerLogic" testsequence="[1|2|3|5]" elapsed="[seconds]" type="Buzzer" longcount="[n]" shortcount="[n]"/>
+<testcase classname="BuzzerEvent" testsequence="[1|2|3|5]" elapsed="[seconds]" type="Buzzer" longcount="[n]" shortcount="[n]"/>
 ```
 
 #### End Event
@@ -176,7 +141,6 @@
 4. Reset elapsed time to 0
 5. Log start event
 6. Display countdown time
-7. **Immediately check for 0-second buzzer events**
 8. Begin countdown
 9. Apply 200ms debounce delay
 
@@ -184,7 +148,6 @@
 1. Update display every second (MM:SS format)
 2. Increment elapsed seconds
 3. Check schedule for buzzer events at current elapsed time
-4. Execute non-blocking buzzer sequences
 5. When elapsed equals total: log end event, stop timer, display 00:00
 
 ### Buzzer Sequence Execution
@@ -192,7 +155,6 @@
 2. Play each buzz for specified duration
 3. Wait 150ms between buzzes
 4. Continue until all buzzes complete
-5. Non-blocking implementation (timer continues)
 
 ## Implementation Notes
 
@@ -222,23 +184,9 @@ struct BuzzEvent {
 - Static schedule arrays defined at compile time
 - Minimal dynamic memory allocation
 
-## Test Verification
-
-Example test output for 1-minute sequence:
-```xml
-<testcase classname="StartEvent" testsequence="1" elapsed="0" type="Start"/>
-<testcase classname="BuzzerLogic" testsequence="1" elapsed="0" type="Buzzer" longcount="1" shortcount="0"/>
-<testcase classname="BuzzerLogic" testsequence="1" elapsed="30" type="Buzzer" longcount="0" shortcount="3"/>
-<testcase classname="BuzzerLogic" testsequence="1" elapsed="40" type="Buzzer" longcount="0" shortcount="2"/>
-...
-<testcase classname="BuzzerLogic" testsequence="1" elapsed="60" type="Buzzer" longcount="1" shortcount="0"/>
-<testcase classname="EndEvent" testsequence="1" elapsed="60" type="End"/>
-```
-
 ## Design Principles
 
-1. **Non-Blocking**: All delays use millis() comparison except inter-buzz gaps
-2. **Single Sequence**: Only one timer sequence runs at a time
-3. **Deterministic**: Exact buzzer timing per specification tables
-4. **Testable**: XML output enables automated verification
-5. **Production Ready**: Minimal overhead, no test/debug code
+1. **Single Sequence**: Only one timer sequence runs at a time
+2. **Deterministic**: Exact buzzer timing per specification tables
+3. **Testable**: XML output enables automated verification
+3. **Production Ready**: Minimal overhead, no test/debug code
