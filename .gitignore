@@ -1,0 +1,6 @@
+.DS_Store
+_pycache_*
+*pyc
+*backups*
+fp-info-cache
+productionFiles/

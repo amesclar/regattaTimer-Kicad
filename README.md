@@ -56,7 +56,7 @@ Female 2 wire to male 8 wire
 ## Images
 | Breadboard | Schematic | PC Board | KiCad 3D Image |
 | - | - | - | - |
-|![Breadboard](images/sailingRegattaTimer_bb.png) |![Schematic](images/sailingRegattaTimer_schem.jpg) |![PC Board](images/sailingRegattaTimer_pcb.jpg) | ![PC Board](images/sailingRegattaTimer3D.jpg) |
+|![Breadboard](images/sailingRegattaTimer_bb.png) |![Schematic](images/sailingRegattaTimer_schem.png) |![PC Board](images/sailingRegattaTimer_pcb.png) | ![PC Board](images/sailingRegattaTimer3D.png) |
 
 ## Terminal Block Configuration
 ![Terminal Block Configuration](images/terminalBlockConfig-mermaid.svg)
