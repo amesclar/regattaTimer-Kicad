@@ -1,6 +1,8 @@
 .DS_Store
 _pycache_*
-*pyc
+*auto_saved_files*
 *backups*
+*pyc
+*lck
 fp-info-cache
 productionFiles/
