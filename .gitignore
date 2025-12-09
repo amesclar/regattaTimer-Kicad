@@ -5,6 +5,7 @@ _pycache_*
 *backups*
 *pyc
 *lck
+*zip
 DRC*
 fp-info-cache
-productionFiles/
+pcbway_production/

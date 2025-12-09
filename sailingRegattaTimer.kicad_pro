@@ -59,7 +59,32 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "missing_courtyard|177060000|46290000|8c63c3f5-88e7-44a6-bf96-f561451ec351|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "net_conflict|151500000|90500000|dc7bdff3-6fc6-4017-89f9-f483f8982c7e|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "net_conflict|191525000|51290000|a0fac72f-d270-4dbb-a089-fc527dd9e620|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "net_conflict|191525000|60623333|0e350a5f-3888-48c3-9f24-6c6646928c3c|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "net_conflict|191525000|69956667|9a004ead-5af9-4e9e-a79b-6c0c07620805|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "net_conflict|191525000|79290000|3d0205af-b00f-42a7-9d62-38bbe615885f|00000000-0000-0000-0000-000000000000",
+          ""
+        ]
+      ],
       "meta": {
         "filename": "board_design_settings.json",
         "version": 2
@@ -78,7 +103,7 @@
         "duplicate_footprints": "warning",
         "extra_footprint": "warning",
         "footprint": "error",
-        "footprint_filters_mismatch": "ignore",
+        "footprint_filters_mismatch": "error",
         "footprint_symbol_mismatch": "warning",
         "footprint_type_mismatch": "error",
         "hole_clearance": "error",
@@ -95,13 +120,13 @@
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
         "mirrored_text_on_front_layer": "warning",
-        "missing_courtyard": "ignore",
+        "missing_courtyard": "error",
         "missing_footprint": "warning",
         "net_conflict": "warning",
         "nonmirrored_text_on_back_layer": "warning",
-        "npth_inside_courtyard": "ignore",
+        "npth_inside_courtyard": "error",
         "padstack": "error",
-        "pth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "error",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "error",
