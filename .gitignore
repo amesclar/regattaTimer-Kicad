@@ -1,6 +1,11 @@
 .DS_Store
 _pycache_*
-*pyc
+*auto_saved_files*
+*_autosave
 *backups*
+*pyc
+*lck
+*zip
+DRC*
 fp-info-cache
-productionFiles/
+pcbway_production/
