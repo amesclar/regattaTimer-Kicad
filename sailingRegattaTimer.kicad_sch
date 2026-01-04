@@ -6218,7 +6218,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "R1"
 			(at 147.32 68.5799 0)
 			(effects
 				(font
