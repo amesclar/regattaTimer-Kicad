@@ -1,7 +1,7 @@
 .DS_Store
 _pycache_*
 *auto_saved_files*
-*_autosave
+*_autosave*
 *backups*
 *pyc
 *lck

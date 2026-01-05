@@ -2650,7 +2650,6 @@
 					(size 1 1)
 					(thickness 0.15)
 				)
-				(justify mirror)
 			)
 		)
 		(property "Datasheet" ""
@@ -7493,7 +7492,7 @@
 		)
 	)
 	(gr_text "Regatta Timer \nv1.5.2"
-		(at 214 49.75 270)
+		(at 218 50.75 90)
 		(layer "F.SilkS")
 		(uuid "cce65daf-6823-4834-8668-89fdc38e31a7")
 		(effects
@@ -8185,14 +8184,6 @@
 		(uuid "3661a5c7-a9a4-4f49-a6b5-c5ef484f07be")
 	)
 	(segment
-		(start 174.956667 69.956667)
-		(end 174.975 69.956667)
-		(width 0.25)
-		(layer "B.Cu")
-		(net 2)
-		(uuid "3ab68694-032c-45ef-a1cb-254044b7c21b")
-	)
-	(segment
 		(start 154.799 72.926)
 		(end 154.799 79.574)
 		(width 0.25)
@@ -8519,14 +8510,6 @@
 		(layer "B.Cu")
 		(net 6)
 		(uuid "edd04d22-8683-4738-945d-dcf65de7bb91")
-	)
-	(segment
-		(start 168.374 83.891)
-		(end 168.475 83.79)
-		(width 0.25)
-		(layer "B.Cu")
-		(net 6)
-		(uuid "edde675b-18e6-4524-bab2-6cba08127c18")
 	)
 	(segment
 		(start 174 88.5)
