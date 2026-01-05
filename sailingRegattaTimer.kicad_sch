@@ -4518,7 +4518,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "rt-uno:rt-Arduino_UNO_R3"
+		(property "Footprint" "Module:Arduino_UNO_R3"
 			(at 189.23 87.63 0)
 			(effects
 				(font
@@ -6218,7 +6218,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "R1"
 			(at 147.32 68.5799 0)
 			(effects
 				(font
