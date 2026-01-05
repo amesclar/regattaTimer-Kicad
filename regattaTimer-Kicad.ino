@@ -1,194 +1,328 @@
-/*
-  inspirsed by https://www.instructables.com/Build-your-own-Coutndown-Regatta-Ollie-Box/
+// Gemini
+// 20251204-093028-
+#include <TM1637Display.h>
 
-20250415-124439 - xml log format to support test framework
-20250309-125820 - buzzer on move to 1Min timer
+// ==========================================
+// 📌 Pin and Timing Definitions
+// ==========================================
+#define CLK_PIN 3
+#define DIO_PIN 5
+#define BUZZER_PIN 4
 
-*/
+#define BTN_1MIN 2
+#define BTN_2MIN 7
+#define BTN_3MIN 8
+#define BTN_5MIN 12
 
-// constants won't change. They're used here to set pin numbers:
-const bool debug = 1;            // serial out
-const int buttonPinTimer1 = 2;   // 1min timer
-const int buttonPinTimer2 = 7;   // 2min timer
-const int buttonPinTimer3 = 8;   // 3min timer
-const int buttonPinTimer5 = 12;  // 5min timer
-const int ledPin = 4;            // the number of the LED pin
-// const int buzzerPin = 2;              // buzzer pin - output
-const int buzzerOnLongMillis = 400;
-const int buzzerOnShortMillis = 200;
+// Buzzer Timings (ms)
+#define BUZZ_LONG_MS 400
+#define BUZZ_SHORT_MS 150
+#define BUZZ_GAP_MS 150
+#define TIMER_INTERVAL_MS 1000 // Time for each countdown step
 
-// variable for reading the pushbutton status
-int buttonStateTimer1 = 0;
-int buttonStateTimer2 = 0;
-int buttonStateTimer3 = 0;
-int buttonStateTimer5 = 0;
+// Button Debounce
+#define DEBOUNCE_TIME 200 // ms
 
-/*
-DURATION  TIME TO START   SOUND SIGNAL          {elapsed sec, long, short}
-000       3 min           3 long                {0,3,0}
-060 sec   2 min           2 long                {60,2,0}  {0,2,0}
-090 sec   1 min 30 sec    1 long 3 short        {90,1,3}  {30,1,3}
-120 sec   1 min           1 long                {120,1,0} {60,1,0}  {0,1,0}
-150 sec   30 sec          3 short               {150,0,3} {90,0,3}  {30,0,3}
-160 sec   20 sec          2 short               {160,0,2} {100,0,2} {40,0,2}
-170 sec   10 sec          1 short               {170,0,1} {110,0,1} {50,0,1}
-175 sec   Last 5 sec      5@1 short(1 per sec)  {175,0,1} {115,0,1} {55,0,1}
-176 sec                   1 short               {176,0,1} {116,0,1} {56,0,1}
-177 sec                   1 short               {177,0,1} {117,0,1} {57,0,1}
-178 sec                   1 short               {178,0,1} {118,0,1} {58,0,1}
-179 sec                   1 short               {179,0,1} {119,0,1} {59,0,1}
-180 sec   START           1 long                {180,1,0} {120,1,0} {60,1,0}
-*/
+// ==========================================
+// 🧩 Data Structures and Schedules
+// ==========================================
 
-// elapsed sec, longCount, shortCount
-// 1 minute
-unsigned long timer1Array[10][3] = {
-  { 0, 1, 0 }, { 30, 0, 3 }, { 40, 0, 2 }, { 50, 0, 1 }, { 55, 0, 1 }, { 56, 0, 1 }, { 57, 0, 1 }, { 58, 0, 1 }, { 59, 0, 1 }, { 60, 1, 0 }
-};
-// 2 minute
-unsigned long timer2Array[12][3] = {
-  { 0, 2, 0 }, { 30, 1, 3 }, { 60, 1, 0 }, { 90, 0, 3 }, { 100, 0, 2 }, { 110, 0, 1 }, { 115, 0, 1 }, { 116, 0, 1 }, { 117, 0, 1 }, { 118, 0, 1 }, { 119, 0, 1 }, { 120, 1, 0 }
-};
-// 3 minute
-unsigned long timer3Array[13][3] = {
-  { 0, 3, 0 }, { 60, 2, 0 }, { 90, 1, 3 }, { 120, 1, 0 }, { 150, 0, 3 }, { 160, 0, 2 }, { 170, 0, 1 }, { 175, 0, 1 }, { 176, 0, 1 }, { 177, 0, 1 }, { 178, 0, 1 }, { 179, 0, 1 }, { 180, 1, 0 }
-};
-// 5 minute
-// 0-class flag up, 1-P flag up, 4-P flag down, 5-class flag down
-unsigned long timer5Array[4][3] = {
-  { 0 * 60, 1, 0 }, { 1 * 60, 1, 0 }, { 4 * 60, 1, 0 }, { 5 * 60, 1, 0 }
+struct BuzzEvent {
+  int seconds;    // Elapsed time (s) when to trigger
+  int longCount;  // Number of long buzzes
+  int shortCount; // Number of short buzzes
 };
 
-bool soundBuzzer(int timer) {
-  digitalWrite(ledPin, HIGH);
-  delay(timer);
-  digitalWrite(ledPin, LOW);
-  return true;
-}
+// --- Sequence Schedules (using PROGMEM) ---
+const BuzzEvent sequence_1min[] PROGMEM = {
+  {0, 1, 0}, {30, 0, 3}, {40, 0, 2}, {50, 0, 1},
+  {55, 0, 1}, {56, 0, 1}, {57, 0, 1}, {58, 0, 1},
+  {59, 0, 1}, {60, 1, 0}
+};
+const int size_1min = sizeof(sequence_1min) / sizeof(BuzzEvent);
 
-String prepLogMsg(unsigned long currentMillis, int i, int i3Count, int timeArrayI3Count) {
-  return String("<millis>" + String(currentMillis) + "</millis>" + "<i>" + String(i) + "</i>" + "<i3Count>" + String(i3Count) + "</i3Count>" + "<timeArrayI3Count>" + String(timeArrayI3Count) + "</timeArrayI3Count>");
-}
+const BuzzEvent sequence_2min[] PROGMEM = {
+  {0, 2, 0}, {30, 1, 3}, {60, 1, 0}, {90, 0, 3},
+  {100, 0, 2}, {110, 0, 1}, {115, 0, 1}, {116, 0, 1},
+  {117, 0, 1}, {118, 0, 1}, {119, 0, 1}, {120, 1, 0}
+};
+const int size_2min = sizeof(sequence_2min) / sizeof(BuzzEvent);
 
-bool logMsg(String msg) {
-  if (debug) {
-    Serial.println(msg);
-  }
-  return true;
-}
+const BuzzEvent sequence_3min[] PROGMEM = {
+  {0, 3, 0}, {60, 2, 0}, {90, 1, 3}, {120, 1, 0},
+  {150, 0, 3}, {160, 0, 2}, {170, 0, 1}, {175, 0, 1},
+  {176, 0, 1}, {177, 0, 1}, {178, 0, 1}, {179, 0, 1},
+  {180, 1, 0}
+};
+const int size_3min = sizeof(sequence_3min) / sizeof(BuzzEvent);
 
+const BuzzEvent sequence_5min[] PROGMEM = {
+  {0, 1, 0}, {60, 1, 0}, {240, 1, 0}, {300, 1, 0}
+};
+const int size_5min = sizeof(sequence_5min) / sizeof(BuzzEvent);
+
+
+// ==========================================
+// ⚙️ Global State Variables
+// ==========================================
+TM1637Display display(CLK_PIN, DIO_PIN);
+
+// Timer State
+bool timerRunning = false;
+int currentDuration = 0;
+int currentSequenceID = 0;
+const BuzzEvent* activeSchedule;
+int scheduleSize = 0;
+
+// NEW: Variable to hold the descriptive name (e.g., "1min")
+const char* currentSequenceName = "unknown";
+
+// Button Debounce
+unsigned long lastButtonPress = 0;
+
+// ==========================================
+// 🎤 Function Prototypes
+// ==========================================
+void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int size);
+void executeBuzzSequence(int longCount, int shortCount);
+void updateDisplay(int seconds);
+void checkButtons(unsigned long currentMillis);
+void logBuzzerEvent(int elapsed, int longCount, int shortCount); // MODIFIED
+void logStartEvent(const char* sequenceName);
+void logEndEvent(); // MODIFIED
+
+
+// ==========================================
+// 🚀 Setup
+// ==========================================
 void setup() {
-  // initialize the LED pin as an output:
-  pinMode(ledPin, OUTPUT);
-  // initialize the pushbutton pin as an input:
-  pinMode(buttonPinTimer1, INPUT);
-  pinMode(buttonPinTimer2, INPUT);
-  pinMode(buttonPinTimer3, INPUT);
-  pinMode(buttonPinTimer5, INPUT);
-
-  // initialize serial output
   Serial.begin(9600);
+  while (!Serial);
+
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  // Initialize Button Pins
+  pinMode(BTN_1MIN, INPUT);
+  pinMode(BTN_2MIN, INPUT);
+  pinMode(BTN_3MIN, INPUT);
+  pinMode(BTN_5MIN, INPUT);
+
+  // Stabilize inputs
+  digitalRead(BTN_1MIN);
+  digitalRead(BTN_2MIN);
+  digitalRead(BTN_3MIN);
+  digitalRead(BTN_5MIN);
+
+  display.setBrightness(0x0f);
+  updateDisplay(0);
+
+  // Initialize debounce timer
+  lastButtonPress = millis();
+
+  Serial.println(F("Sailing Regatta Timer Ready"));
 }
 
-bool headerOut = true;
-
+// ==========================================
+// 🔁 Main Loop (SIMPLE BUTTON CHECK ONLY)
+// ==========================================
 void loop() {
+  checkButtons(millis());
+}
 
-  // read the state of the pushbutton value:
-  buttonStateTimer1 = digitalRead(buttonPinTimer1);
-  buttonStateTimer2 = digitalRead(buttonPinTimer2);
-  buttonStateTimer3 = digitalRead(buttonPinTimer3);
-  buttonStateTimer5 = digitalRead(buttonPinTimer5);
+// ==========================================
+// 🛠️ Core Logic Functions
+// ==========================================
 
-  // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-  if (buttonStateTimer1 == HIGH) {
-    
-    if (headerOut) {
-      logMsg("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      headerOut = false;
-    }
-    
-    logMsg("<OneMinute>");
-    // rows - zero based row count
-    execBuzzer(timer1Array, 9, 3);
-    logMsg("</OneMinute>");
+/**
+ * @brief Checks for button presses and starts a timer.
+ */
+void checkButtons(unsigned long currentMillis) {
+  if (timerRunning) {
+    return;
+  }
 
-  } else if (buttonStateTimer2 == HIGH) {
-    logMsg("<TwoMinute>");
-    execBuzzer(timer2Array, 11, 3);
-    logMsg("</TwoMinute>");
+  if (currentMillis - lastButtonPress < DEBOUNCE_TIME) {
+    return;
+  }
 
-  } else if (buttonStateTimer3 == HIGH) {
-    logMsg("<ThreeMinute>");
-    execBuzzer(timer3Array, 12, 3);
-    logMsg("</ThreeMinute>");
-
-  } else if (buttonStateTimer5 == HIGH) {
-    logMsg("<FiveMinute>");
-    execBuzzer(timer5Array, 3, 3);
-    logMsg("</FiveMinute>");
-    
-    headerOut = true;
-
-  } else {
-    // turn LED off:
-    digitalWrite(ledPin, LOW);
+  // Read current button states (Active HIGH)
+  if (digitalRead(BTN_1MIN) == HIGH) {
+    startTimer(60, 1, sequence_1min, size_1min);
+    lastButtonPress = currentMillis;
+  }
+  else if (digitalRead(BTN_2MIN) == HIGH) {
+    startTimer(120, 2, sequence_2min, size_2min);
+    lastButtonPress = currentMillis;
+  }
+  else if (digitalRead(BTN_3MIN) == HIGH) {
+    startTimer(180, 3, sequence_3min, size_3min);
+    lastButtonPress = currentMillis;
+  }
+  else if (digitalRead(BTN_5MIN) == HIGH) {
+    startTimer(300, 5, sequence_5min, size_5min);
+    lastButtonPress = currentMillis;
   }
 }
 
-bool execBuzzer(unsigned long timeArray[][3], int rows, int columns) {
-  long testMillis;
 
-  unsigned long currentDelta;
-  unsigned long currentMillis;
-  unsigned long deltaMillis;
-  // unsigned long iCount = 0;
-  // unsigned long prevMillis;
-  unsigned long startMillis;
+/**
+ * @brief Initializes and executes the regatta timer sequence (BLOCKING).
+ */
+void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int size) {
+  // 1. Setup globals
+  currentDuration = duration;
+  currentSequenceID = sequenceID;
+  activeSchedule = schedule;
+  scheduleSize = size;
+  timerRunning = true;
+  int nextEventIndex = 0;
 
-  int buzzerLongCount;
-  int buzzerShortCount;
-  int buzzerDelayMult = 2;
-  int i3Count = 0;  // zero is button press to start sequence
-  int testValue = 0;
+  // 2. CHECK and EXECUTE T=0 BUZZER EVENT (Don't log yet!)
+  bool t0_event_occurred = false;
+  int t0_long = 0;
+  int t0_short = 0;
 
-  startMillis = millis();
+  if (nextEventIndex < scheduleSize) {
+    BuzzEvent event;
+    memcpy_P(&event, activeSchedule + nextEventIndex, sizeof(BuzzEvent));
 
+    if (event.seconds == 0) {
+        // Execute the physical buzz now.
+        executeBuzzSequence(event.longCount, event.shortCount);
 
-  while (i3Count <= rows) {
-
-    currentMillis = millis();
-    testMillis = (currentMillis - startMillis) - (timeArray[i3Count][0] * 1000);
-
-    if (testMillis >= testValue) {
-
-      // long buzzer
-      buzzerLongCount = timeArray[i3Count][1];
-      // Serial.println(String(buzzerLongCount));
-
-      for (int i = 0; i < buzzerLongCount; i++) {
-        // millis, i, i3Count, timeArray.i3Count
-        logMsg(prepLogMsg(currentMillis, i, i3Count, timeArray[i3Count][0]));
-        digitalWrite(ledPin, HIGH);  //light
-        soundBuzzer(buzzerOnLongMillis);
-        delay(buzzerDelayMult * buzzerOnLongMillis);
-      }
-
-      // short buzzer
-      buzzerShortCount = timeArray[i3Count][2];
-
-      for (int i = 0; i < buzzerShortCount; i++) {
-        // millis, i, i3Count, timeArray.i3Count
-        logMsg(prepLogMsg(currentMillis, i, i3Count, timeArray[i3Count][0]));
-        digitalWrite(ledPin, HIGH);  //light
-        soundBuzzer(buzzerOnShortMillis);
-        delay(buzzerDelayMult * buzzerOnShortMillis);
-      }
-
-      ++i3Count;
-      // ++iCount;
-      // prevMillis = currentMillis;
-      currentMillis = millis();
+        // Save logging data and advance index, but don't log until after StartEvent.
+        t0_long = event.longCount;
+        t0_short = event.shortCount;
+        nextEventIndex++;
+        t0_event_occurred = true;
     }
   }
+
+  // 3. Set the descriptive name globally
+  switch (duration) {
+      case 60: currentSequenceName = "1min"; break;
+      case 120: currentSequenceName = "2min"; break;
+      case 180: currentSequenceName = "3min"; break;
+      case 300: currentSequenceName = "5min"; break;
+      default: currentSequenceName = "unknown"; break;
+  }
+
+  // 4. Log start (MUST COME FIRST IN THE LOG)
+  logStartEvent(currentSequenceName);
+
+  // 5. Log t=0 Buzzer event (MUST COME SECOND IN THE LOG)
+  if (t0_event_occurred) {
+      logBuzzerEvent(0, t0_long, t0_short);
+  }
+
+  updateDisplay(currentDuration);
+
+  // 6. Main Countdown Loop (starts from 1 second elapsed)
+  for (int elapsedSeconds = 1; elapsedSeconds <= currentDuration; elapsedSeconds++) {
+    unsigned long startTime = millis();
+
+    // Check for buzzer events at the current elapsed second
+    if (nextEventIndex < scheduleSize) {
+      BuzzEvent event;
+      memcpy_P(&event, activeSchedule + nextEventIndex, sizeof(BuzzEvent));
+
+      if (elapsedSeconds == event.seconds) {
+        logBuzzerEvent(elapsedSeconds, event.longCount, event.shortCount);
+        executeBuzzSequence(event.longCount, event.shortCount);
+        nextEventIndex++;
+      }
+    }
+
+    // Update display and delay
+    int remaining = currentDuration - elapsedSeconds;
+    updateDisplay(remaining);
+
+    unsigned long timeElapsedInLoop = millis() - startTime;
+    if (timeElapsedInLoop < TIMER_INTERVAL_MS) {
+      delay(TIMER_INTERVAL_MS - timeElapsedInLoop);
+    }
+  }
+
+  // 7. Cleanup and Exit
+  logEndEvent();
+  timerRunning = false;
+  updateDisplay(0);
+}
+
+
+/**
+ * @brief Executes a buzzer sequence (BLOCKING).
+ */
+void executeBuzzSequence(int longCount, int shortCount) {
+  // A long buzz sequence
+  for (int i = 0; i < longCount; i++) {
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(BUZZ_LONG_MS);
+    digitalWrite(BUZZER_PIN, LOW);
+    if (i < longCount - 1 || shortCount > 0) {
+      delay(BUZZ_GAP_MS); // Gap between buzzes
+    }
+  }
+
+  // A short buzz sequence
+  for (int i = 0; i < shortCount; i++) {
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(BUZZ_SHORT_MS);
+    digitalWrite(BUZZER_PIN, LOW);
+    if (i < shortCount - 1) {
+      delay(BUZZ_GAP_MS); // Gap between short buzzes
+    }
+  }
+
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+
+// ==========================================
+// 📊 Utility & Logging Functions
+// ==========================================
+
+/**
+ * @brief Formats and shows time on the TM1637 display.
+ */
+void updateDisplay(int secondsRemaining) {
+  int minutes = secondsRemaining / 60;
+  int seconds = secondsRemaining % 60;
+  display.showNumberDecEx(minutes * 100 + seconds, 0b01000000, true);
+}
+
+/**
+ * @brief Logs the start of the timer sequence.
+ */
+void logStartEvent(const char* sequenceName) {
+  Serial.print(F("<testcase classname=\"StartEvent\" whichtest=\""));
+  Serial.print(sequenceName);
+  Serial.println(F("\" elapsed=\"0\" type=\"Start\"/>"));
+}
+
+/**
+ * @brief Logs a buzzer event in XML format (USING GLOBAL NAME).
+ */
+void logBuzzerEvent(int elapsed, int longCount, int shortCount) {
+  Serial.print(F("<testcase classname=\"BuzzerEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
+  Serial.print(currentSequenceName); // USING GLOBAL NAME
+  Serial.print(F("\" elapsed=\""));
+  Serial.print(elapsed);
+  Serial.print(F("\" type=\"Buzzer\" longcount=\""));
+  Serial.print(longCount);
+  Serial.print(F("\" shortcount=\""));
+  Serial.print(shortCount);
+  Serial.println(F("\"/>"));
+}
+
+/**
+ * @brief Logs the end of the timer sequence in XML format (USING GLOBAL NAME).
+ */
+void logEndEvent() {
+  Serial.print(F("<testcase classname=\"EndEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
+  Serial.print(currentSequenceName); // USING GLOBAL NAME
+  Serial.print(F("\" elapsed=\""));
+  Serial.print(currentDuration);
+  Serial.println(F("\" type=\"End\"/>"));
 }
