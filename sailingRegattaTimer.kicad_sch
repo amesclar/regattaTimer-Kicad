@@ -6,7 +6,7 @@
 	(paper "A")
 	(title_block
 		(title "Sailing Regatta Timer")
-		(date "2025-01-27")
+		(date "2026-01-05")
 	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x02_Socket"
@@ -4528,7 +4528,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.arduino.cc/en/Main/arduinoBoardUno"
+		(property "Datasheet" ""
 			(at 189.23 87.63 0)
 			(effects
 				(font
@@ -4537,7 +4537,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Arduino UNO Microcontroller Module, release 3"
+		(property "Description" ""
 			(at 189.23 87.63 0)
 			(effects
 				(font
