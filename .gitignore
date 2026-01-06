@@ -1,3 +1,4 @@
+.DS_Store
 _pycache_*
 *auto_saved_files*
 *_autosave*
@@ -7,5 +8,4 @@ _pycache_*
 *zip
 DRC*
 fp-info-cache
-fp-lib-table
 pcbway_production/
