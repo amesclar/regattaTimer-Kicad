@@ -20,13 +20,13 @@
 	(property "Value" "Arduino_UNO_R3"
 		(at 0 22.86 0)
 		(layer "F.Fab")
+		(hide yes)
 		(uuid "44c03ee0-1800-4425-b67b-fd925a949ddb")
 		(effects
 			(font
 				(size 1 1)
 				(thickness 0.15)
 			)
-			(justify mirror)
 		)
 	)
 	(property "Datasheet" ""
@@ -405,6 +405,7 @@
 				(size 1 1)
 				(thickness 0.15)
 			)
+			(justify mirror)
 		)
 	)
 	(pad "1" thru_hole rect
