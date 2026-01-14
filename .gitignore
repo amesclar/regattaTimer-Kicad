@@ -8,4 +8,5 @@ _pycache_*
 *zip
 DRC*
 fp-info-cache
+fp-lib-table
 pcbway_production/
