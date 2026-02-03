@@ -35,32 +35,25 @@ struct BuzzEvent {
 
 // --- Sequence Schedules (using PROGMEM) ---
 const BuzzEvent sequence_1min[] PROGMEM = {
-  {0, 1, 0}, {30, 0, 3}, {40, 0, 2}, {50, 0, 1},
-  {55, 0, 1}, {56, 0, 1}, {57, 0, 1}, {58, 0, 1},
-  {59, 0, 1}, {60, 1, 0}
-};
+    {0, 1, 0},  {30, 0, 3}, {40, 0, 2}, {50, 0, 1}, {55, 0, 1},
+    {56, 0, 1}, {57, 0, 1}, {58, 0, 1}, {59, 0, 1}, {60, 1, 0}};
 const int size_1min = sizeof(sequence_1min) / sizeof(BuzzEvent);
 
 const BuzzEvent sequence_2min[] PROGMEM = {
-  {0, 2, 0}, {30, 1, 3}, {60, 1, 0}, {90, 0, 3},
-  {100, 0, 2}, {110, 0, 1}, {115, 0, 1}, {116, 0, 1},
-  {117, 0, 1}, {118, 0, 1}, {119, 0, 1}, {120, 1, 0}
-};
+    {0, 2, 0},   {30, 1, 3},  {60, 1, 0},  {90, 0, 3},
+    {100, 0, 2}, {110, 0, 1}, {115, 0, 1}, {116, 0, 1},
+    {117, 0, 1}, {118, 0, 1}, {119, 0, 1}, {120, 1, 0}};
 const int size_2min = sizeof(sequence_2min) / sizeof(BuzzEvent);
 
 const BuzzEvent sequence_3min[] PROGMEM = {
-  {0, 3, 0}, {60, 2, 0}, {90, 1, 3}, {120, 1, 0},
-  {150, 0, 3}, {160, 0, 2}, {170, 0, 1}, {175, 0, 1},
-  {176, 0, 1}, {177, 0, 1}, {178, 0, 1}, {179, 0, 1},
-  {180, 1, 0}
-};
+    {0, 3, 0},   {60, 2, 0},  {90, 1, 3},  {120, 1, 0}, {150, 0, 3},
+    {160, 0, 2}, {170, 0, 1}, {175, 0, 1}, {176, 0, 1}, {177, 0, 1},
+    {178, 0, 1}, {179, 0, 1}, {180, 1, 0}};
 const int size_3min = sizeof(sequence_3min) / sizeof(BuzzEvent);
 
 const BuzzEvent sequence_5min[] PROGMEM = {
-  {0, 1, 0}, {60, 1, 0}, {240, 1, 0}, {300, 1, 0}
-};
+    {0, 1, 0}, {60, 1, 0}, {240, 1, 0}, {300, 1, 0}};
 const int size_5min = sizeof(sequence_5min) / sizeof(BuzzEvent);
-
 
 // ==========================================
 // ⚙️ Global State Variables
@@ -71,42 +64,69 @@ TM1637Display display(CLK_PIN, DIO_PIN);
 bool timerRunning = false;
 int currentDuration = 0;
 int currentSequenceID = 0;
-const BuzzEvent* activeSchedule;
+const BuzzEvent *activeSchedule;
 int scheduleSize = 0;
 
 // NEW: Variable to hold the descriptive name (e.g., "1min")
-const char* currentSequenceName = "unknown";
+const char *currentSequenceName = "unknown";
 
-// Button Debounce
-unsigned long lastButtonPress = 0;
+// Button State (Edge Detection & Auto-Polarity)
+int lastState1 = LOW;
+int lastState2 = LOW;
+int lastState3 = LOW;
+int lastState5 = LOW;
+
+int restingState1 = LOW;
+int restingState2 = LOW;
+int restingState3 = LOW;
+int restingState5 = LOW;
 
 // ==========================================
 // 🎤 Function Prototypes
 // ==========================================
-void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int size);
+void startTimer(int duration, int sequenceID, const BuzzEvent *schedule,
+                int size);
 void executeBuzzSequence(int longCount, int shortCount);
 void updateDisplay(int seconds);
 void checkButtons(unsigned long currentMillis);
 void logBuzzerEvent(int elapsed, int longCount, int shortCount); // MODIFIED
-void logStartEvent(const char* sequenceName);
+void logStartEvent(const char *sequenceName);
 void logEndEvent(); // MODIFIED
-
 
 // ==========================================
 // 🚀 Setup
 // ==========================================
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
+  while (!Serial)
+    ;
 
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);
 
   // Initialize Button Pins
-  pinMode(BTN_1MIN, INPUT);
-  pinMode(BTN_2MIN, INPUT);
-  pinMode(BTN_3MIN, INPUT);
-  pinMode(BTN_5MIN, INPUT);
+  pinMode(BTN_1MIN, INPUT_PULLUP);
+  pinMode(BTN_2MIN, INPUT_PULLUP);
+  pinMode(BTN_3MIN, INPUT_PULLUP);
+  pinMode(BTN_5MIN, INPUT_PULLUP);
+
+  // Initialize States & Auto-Detect Polarity
+  restingState1 = digitalRead(BTN_1MIN);
+  restingState2 = digitalRead(BTN_2MIN);
+  restingState3 = digitalRead(BTN_3MIN);
+  restingState5 = digitalRead(BTN_5MIN);
+
+  // Set initial lastState to resting state to prevent immediate trigger
+  lastState1 = restingState1;
+  lastState2 = restingState2;
+  lastState3 = restingState3;
+  lastState5 = restingState5;
+
+  Serial.print("Auto-Detected Resting States: ");
+  Serial.print(restingState1);
+  Serial.print(restingState2);
+  Serial.print(restingState3);
+  Serial.println(restingState5);
 
   // Stabilize inputs
   digitalRead(BTN_1MIN);
@@ -118,7 +138,7 @@ void setup() {
   updateDisplay(0);
 
   // Initialize debounce timer
-  lastButtonPress = millis();
+  // Initialize debounce timer (Removed)
 
   Serial.println(F("Sailing Regatta Timer Ready"));
 }
@@ -126,9 +146,7 @@ void setup() {
 // ==========================================
 // 🔁 Main Loop (SIMPLE BUTTON CHECK ONLY)
 // ==========================================
-void loop() {
-  checkButtons(millis());
-}
+void loop() { checkButtons(millis()); }
 
 // ==========================================
 // 🛠️ Core Logic Functions
@@ -142,34 +160,42 @@ void checkButtons(unsigned long currentMillis) {
     return;
   }
 
-  if (currentMillis - lastButtonPress < DEBOUNCE_TIME) {
-    return;
-  }
+  // Read current button states
+  int s1 = digitalRead(BTN_1MIN);
+  int s2 = digitalRead(BTN_2MIN);
+  int s3 = digitalRead(BTN_3MIN);
+  int s5 = digitalRead(BTN_5MIN);
 
-  // Read current button states (Active HIGH)
-  if (digitalRead(BTN_1MIN) == HIGH) {
+  // Check for Change from Resting State (Transition to Active)
+  // Logic: If current state is NOT resting state (Pressed) AND it wasn't
+  // pressed before (Edge)
+
+  if (s1 != restingState1 && lastState1 == restingState1) {
+    Serial.println("Trigger 1min");
     startTimer(60, 1, sequence_1min, size_1min);
-    lastButtonPress = currentMillis;
-  }
-  else if (digitalRead(BTN_2MIN) == HIGH) {
+  } else if (s2 != restingState2 && lastState2 == restingState2) {
+    Serial.println("Trigger 2min");
     startTimer(120, 2, sequence_2min, size_2min);
-    lastButtonPress = currentMillis;
-  }
-  else if (digitalRead(BTN_3MIN) == HIGH) {
+  } else if (s3 != restingState3 && lastState3 == restingState3) {
+    Serial.println("Trigger 3min");
     startTimer(180, 3, sequence_3min, size_3min);
-    lastButtonPress = currentMillis;
-  }
-  else if (digitalRead(BTN_5MIN) == HIGH) {
+  } else if (s5 != restingState5 && lastState5 == restingState5) {
+    Serial.println("Trigger 5min");
     startTimer(300, 5, sequence_5min, size_5min);
-    lastButtonPress = currentMillis;
   }
-}
 
+  // Update last states
+  lastState1 = s1;
+  lastState2 = s2;
+  lastState3 = s3;
+  lastState5 = s5;
+}
 
 /**
  * @brief Initializes and executes the regatta timer sequence (BLOCKING).
  */
-void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int size) {
+void startTimer(int duration, int sequenceID, const BuzzEvent *schedule,
+                int size) {
   // 1. Setup globals
   currentDuration = duration;
   currentSequenceID = sequenceID;
@@ -188,24 +214,35 @@ void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int siz
     memcpy_P(&event, activeSchedule + nextEventIndex, sizeof(BuzzEvent));
 
     if (event.seconds == 0) {
-        // Execute the physical buzz now.
-        executeBuzzSequence(event.longCount, event.shortCount);
+      // Execute the physical buzz now.
+      executeBuzzSequence(event.longCount, event.shortCount);
 
-        // Save logging data and advance index, but don't log until after StartEvent.
-        t0_long = event.longCount;
-        t0_short = event.shortCount;
-        nextEventIndex++;
-        t0_event_occurred = true;
+      // Save logging data and advance index, but don't log until after
+      // StartEvent.
+      t0_long = event.longCount;
+      t0_short = event.shortCount;
+      nextEventIndex++;
+      t0_event_occurred = true;
     }
   }
 
   // 3. Set the descriptive name globally
   switch (duration) {
-      case 60: currentSequenceName = "1min"; break;
-      case 120: currentSequenceName = "2min"; break;
-      case 180: currentSequenceName = "3min"; break;
-      case 300: currentSequenceName = "5min"; break;
-      default: currentSequenceName = "unknown"; break;
+  case 60:
+    currentSequenceName = "1min";
+    break;
+  case 120:
+    currentSequenceName = "2min";
+    break;
+  case 180:
+    currentSequenceName = "3min";
+    break;
+  case 300:
+    currentSequenceName = "5min";
+    break;
+  default:
+    currentSequenceName = "unknown";
+    break;
   }
 
   // 4. Log start (MUST COME FIRST IN THE LOG)
@@ -213,13 +250,14 @@ void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int siz
 
   // 5. Log t=0 Buzzer event (MUST COME SECOND IN THE LOG)
   if (t0_event_occurred) {
-      logBuzzerEvent(0, t0_long, t0_short);
+    logBuzzerEvent(0, t0_long, t0_short);
   }
 
   updateDisplay(currentDuration);
 
   // 6. Main Countdown Loop (starts from 1 second elapsed)
-  for (int elapsedSeconds = 1; elapsedSeconds <= currentDuration; elapsedSeconds++) {
+  for (int elapsedSeconds = 1; elapsedSeconds <= currentDuration;
+       elapsedSeconds++) {
     unsigned long startTime = millis();
 
     // Check for buzzer events at the current elapsed second
@@ -250,7 +288,6 @@ void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int siz
   updateDisplay(0);
 }
 
-
 /**
  * @brief Executes a buzzer sequence (BLOCKING).
  */
@@ -278,7 +315,6 @@ void executeBuzzSequence(int longCount, int shortCount) {
   digitalWrite(BUZZER_PIN, LOW);
 }
 
-
 // ==========================================
 // 📊 Utility & Logging Functions
 // ==========================================
@@ -295,7 +331,7 @@ void updateDisplay(int secondsRemaining) {
 /**
  * @brief Logs the start of the timer sequence.
  */
-void logStartEvent(const char* sequenceName) {
+void logStartEvent(const char *sequenceName) {
   Serial.print(F("<testcase classname=\"StartEvent\" whichtest=\""));
   Serial.print(sequenceName);
   Serial.println(F("\" elapsed=\"0\" type=\"Start\"/>"));
@@ -305,8 +341,9 @@ void logStartEvent(const char* sequenceName) {
  * @brief Logs a buzzer event in XML format (USING GLOBAL NAME).
  */
 void logBuzzerEvent(int elapsed, int longCount, int shortCount) {
-  Serial.print(F("<testcase classname=\"BuzzerEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
-  Serial.print(currentSequenceName); // USING GLOBAL NAME
+  Serial.print(F(
+      "<testcase classname=\"BuzzerEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
+  Serial.print(currentSequenceName);                        // USING GLOBAL NAME
   Serial.print(F("\" elapsed=\""));
   Serial.print(elapsed);
   Serial.print(F("\" type=\"Buzzer\" longcount=\""));
@@ -320,8 +357,9 @@ void logBuzzerEvent(int elapsed, int longCount, int shortCount) {
  * @brief Logs the end of the timer sequence in XML format (USING GLOBAL NAME).
  */
 void logEndEvent() {
-  Serial.print(F("<testcase classname=\"EndEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
-  Serial.print(currentSequenceName); // USING GLOBAL NAME
+  Serial.print(
+      F("<testcase classname=\"EndEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
+  Serial.print(currentSequenceName);                       // USING GLOBAL NAME
   Serial.print(F("\" elapsed=\""));
   Serial.print(currentDuration);
   Serial.println(F("\" type=\"End\"/>"));
