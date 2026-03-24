@@ -837,7 +837,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "productionFiles/",
+      "plot": "/home/fred/Arduino/regattaTimer-Kicad/productionFiles/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",

@@ -117,7 +117,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "productionFiles/")
+			(outputdirectory "/home/fred/Arduino/regattaTimer-Kicad/productionFiles/")
 		)
 	)
 	(net 0 "")
@@ -3566,7 +3566,7 @@
 		(descr "Through hole straight socket strip, 1x03, 2.54mm pitch, single row (from Kicad 4.0.7), script generated")
 		(tags "Through hole socket strip THT 1x03 2.54mm single row")
 		(property "Reference" "J9-Relay1"
-			(at 0 -2.77 0)
+			(at -1 -2.73 0)
 			(layer "F.SilkS")
 			(uuid "d0b29f9b-4ce3-4c58-b3c7-372f79cc0e3b")
 			(effects
