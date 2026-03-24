@@ -234,7 +234,7 @@ void setup() {
   Serial.print(digitalRead(PIN_BTN_3MIN));
   Serial.print(F(" 5m="));
   Serial.println(digitalRead(PIN_BTN_5MIN));
-  Serial.println(F("Ready for buttons (PULSE CATCHER ACTIVE)..."));
+  Serial.println(F("Ready for buttons..."));
 }
 
 void loop() {
@@ -244,41 +244,9 @@ void loop() {
   int btn3 = digitalRead(PIN_BTN_3MIN);
   int btn5 = digitalRead(PIN_BTN_5MIN);
 
-  // High-speed Signal Catcher: Print ANY transition on ANY pin immediately
-  static int p1 = HIGH, p2 = HIGH, p3 = HIGH, p5 = HIGH;
-  if (btn1 != p1) {
-    Serial.print(F(" [P2="));
-    Serial.print(btn1);
-    Serial.println(F("] "));
-    p1 = btn1;
-  }
-  if (btn2 != p2) {
-    Serial.print(F(" [P7="));
-    Serial.print(btn2);
-    Serial.println(F("] "));
-    p2 = btn2;
-  }
-  if (btn3 != p3) {
-    Serial.print(F(" [P8="));
-    Serial.print(btn3);
-    Serial.println(F("] "));
-    p3 = btn3;
-  }
-  if (btn5 != p5) {
-    Serial.print(F(" [P12="));
-    Serial.print(btn5);
-    Serial.println(F("] "));
-    p5 = btn5;
-  }
-
-  if (btn1 == LOW && p1 == HIGH) {
-    Serial.println(F(">>> 1m! <<<"));
-  }
-
   // Check for Press (HIGH to LOW transition)
   // 1 Minute Button
   if (lastBtn1 == HIGH && btn1 == LOW) {
-    Serial.println(F(">>> 1m Detect! Debouncing..."));
     delay(50);
     if (digitalRead(PIN_BTN_1MIN) == LOW) {
       runSequence(seq1Min, sizeof(seq1Min) / sizeof(BuzzEvent), 60, "1min");
@@ -288,14 +256,11 @@ void loop() {
       lastBtn3 = digitalRead(PIN_BTN_3MIN);
       lastBtn5 = digitalRead(PIN_BTN_5MIN);
       return;
-    } else {
-      Serial.println(F(">>> 1m Noise"));
     }
   }
 
   // 2 Minute Button
   else if (lastBtn2 == HIGH && btn2 == LOW) {
-    Serial.println(F(">>> 2m Detect! Debouncing..."));
     delay(50);
     if (digitalRead(PIN_BTN_2MIN) == LOW) {
       runSequence(seq2Min, sizeof(seq2Min) / sizeof(BuzzEvent), 120, "2min");
@@ -304,14 +269,11 @@ void loop() {
       lastBtn3 = digitalRead(PIN_BTN_3MIN);
       lastBtn5 = digitalRead(PIN_BTN_5MIN);
       return;
-    } else {
-      Serial.println(F(">>> 2m Noise"));
     }
   }
 
   // 3 Minute Button
   else if (lastBtn3 == HIGH && btn3 == LOW) {
-    Serial.println(F("3m Detect! Debouncing..."));
     delay(50);
     if (digitalRead(PIN_BTN_3MIN) == LOW) {
       runSequence(seq3Min, sizeof(seq3Min) / sizeof(BuzzEvent), 180, "3min");
@@ -320,14 +282,11 @@ void loop() {
       lastBtn3 = digitalRead(PIN_BTN_3MIN);
       lastBtn5 = digitalRead(PIN_BTN_5MIN);
       return;
-    } else {
-      Serial.println(F(">>> 3m Noise"));
     }
   }
 
   // 5 Minute Button
   else if (lastBtn5 == HIGH && btn5 == LOW) {
-    Serial.println(F(">>> 5m Detect! Debouncing..."));
     delay(50);
     if (digitalRead(PIN_BTN_5MIN) == LOW) {
       runSequence(seq5Min, sizeof(seq5Min) / sizeof(BuzzEvent), 300, "5min");
@@ -336,8 +295,6 @@ void loop() {
       lastBtn3 = digitalRead(PIN_BTN_3MIN);
       lastBtn5 = digitalRead(PIN_BTN_5MIN);
       return;
-    } else {
-      Serial.println(F(">>> 5m Noise"));
     }
   }
 
