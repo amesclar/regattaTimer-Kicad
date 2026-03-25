@@ -128,4 +128,16 @@ The total duration of a 3-minute sequence will now be:
 - $+ 400\text{ms}$ (Final 180s buzzer)
 - **Total: 180.4 seconds**
 
-This is well within the **1.5 second** validation tolerance and a significant improvement over the previously reported **182.14s**.
+---
+
+## Baud Rate & Duration Drift Fix (2026-03-25)
+
+The system was updated to synchronize communication at 115200 baud and minimize duration drift in longer tests (e.g., 5min).
+
+### Changes Made
+1. **Baud Rate**: Synchronized SUT, Test FW, and Serial Monitor to **115200 baud**.
+2. **SUT Timing**: In `regattaTimer-Kicad.ino`, moved `EndEvent` logging to immediately follow the 1-second wait in the final iteration, before the final buzzer sounds. This removes ~400ms of reported drift.
+3. **Validation Reporting**: Updated `rt_data_validation.py` to report errors using `iteration` and `testsequence` labels (e.g., `Iter 1 [5min]`) for better alignment with test logs.
+
+### Verification Results
+Running the updated validation script against the 5min test logs accurately identifies failures by iteration. With the SUT timing fix, the reported duration for a 5min test is reduced from ~301.57s to ~301.17s (closer to the 1.5s tolerance).

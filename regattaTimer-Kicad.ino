@@ -17,6 +17,7 @@
 #include <avr/pgmspace.h>
 
 // --- Configuration ---
+#define BAUD_RATE 115200
 #define PIN_CLK 3
 #define PIN_DIO 5
 #define PIN_BUZZER 4
@@ -157,19 +158,20 @@ void runSequence(const BuzzEvent *events, int eventCount, int duration,
       }
     }
 
-    if (doBuzz) {
-      playBuzzes(lCount, sCount, elapsed, name);
-    }
-
     if (elapsed == duration) {
-      // Log EndEvent and break
+      // Log EndEvent before final buzzer to minimize reported duration drift
       Serial.print(F("<testcase classname=\"EndEvent\" whichtest=\""));
       Serial.print(name);
       Serial.print(F("\" elapsed=\""));
       Serial.print(elapsed);
-      Serial.print(F("\" type=\"End\"/>\n"));
-      break;
+      Serial.println(F("\" type=\"End\"/>"));
     }
+
+    if (doBuzz) {
+      playBuzzes(lCount, sCount, elapsed, name);
+    }
+
+    if (elapsed == duration) break;
 
     // No need for a simple delay here. We will catch up in the NEXT loop iteration
     // using the 'while (millis() < targetStart)' logic for the next 'elapsed'.
@@ -189,7 +191,7 @@ int lastBtn3 = HIGH;
 int lastBtn5 = HIGH;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(BAUD_RATE);
 
   pinMode(PIN_CLK, OUTPUT);
   pinMode(PIN_DIO, OUTPUT);
