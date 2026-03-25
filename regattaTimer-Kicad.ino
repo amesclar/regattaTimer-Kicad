@@ -127,33 +127,27 @@ void runSequence(const BuzzEvent *events, int eventCount, int duration,
   Serial.print(name);
   Serial.print(F("\" elapsed=\"0\" type=\"Start\"/>\n"));
 
+  unsigned long startMillis = millis();
+
   for (int elapsed = 0; elapsed <= duration; elapsed++) {
-    unsigned long secondStart = millis();
+    // Current target start of this second is startMillis + (elapsed * 1000)
+    // Wait for it if we are still ahead (unlikely normally, but handles lead-in)
+    unsigned long targetStart = startMillis + (unsigned long)elapsed * 1000;
+    while (millis() < targetStart) {
+      // Small spin wait for absolute precision at start of second
+    }
 
     // Calculate Remaining Time
     int remaining = duration - elapsed;
     updateDisplay(remaining);
 
-    // Check for event
-    // Scan through events to find match for current elapsed time
-    // Since events are sorted by elapsed time, we can optimize or just linear
-    // scan small array We assume the array is sorted by 'seconds'
-
-    // We use pgm_read_word to access PROGMEM
-    // Loop through all events to be safe and simple
+    // Check for events
     int lCount = 0;
     int sCount = 0;
     bool doBuzz = false;
-
     for (int i = 0; i < eventCount; i++) {
       int evSeconds = (int)pgm_read_word(&events[i].seconds);
       if (evSeconds == elapsed) {
-        // Found event
-        // Read byte fields. Note: structure packing/alignment might affect
-        // offset. int (2 bytes) + uint8 (1) + uint8 (1) = 4 bytes. But let's
-        // act safely using byte offsets if struct might augment padding, or
-        // just cast address. pointer arithmetic on BuzzEvent* is simpler if
-        // compiler handles it. Using memcpy_P is safest for structs.
         BuzzEvent ev;
         memcpy_P(&ev, &events[i], sizeof(BuzzEvent));
         lCount = ev.longCount;
@@ -168,28 +162,19 @@ void runSequence(const BuzzEvent *events, int eventCount, int duration,
     }
 
     if (elapsed == duration) {
-      // End logging
+      // Log EndEvent and break
       Serial.print(F("<testcase classname=\"EndEvent\" whichtest=\""));
       Serial.print(name);
       Serial.print(F("\" elapsed=\""));
       Serial.print(elapsed);
       Serial.print(F("\" type=\"End\"/>\n"));
-      break; // Exit loop
+      break;
     }
 
-    // Wait for remainder of the second
-    // Spec is blocking delay(), but specific "1000ms" interval.
-    // We want the loop to take roughly 1000ms total.
-    unsigned long now = millis();
-    unsigned long taken = now - secondStart;
-    if (taken < TIMER_INTERVAL_MS) {
-      delay(TIMER_INTERVAL_MS - taken);
-    } else {
-      // If we overran (e.g. long buzz sequence), we just continue immediately.
-      // This satisfies "blocking" nature (no catching up logic required by
-      // spec)
-    }
+    // No need for a simple delay here. We will catch up in the NEXT loop iteration
+    // using the 'while (millis() < targetStart)' logic for the next 'elapsed'.
   }
+
 
   // Clear display or leave 00:00? Spec doesn't say.
   // Usually regatta timers stay at 00:00 or reset.
