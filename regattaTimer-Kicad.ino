@@ -18,6 +18,7 @@
 
 // --- Configuration ---
 #define BAUD_RATE 115200
+#define MILLIS_PER_SECOND 996 // Calibrated to specific SUT hardware
 #define PIN_CLK 3
 #define PIN_DIO 5
 #define PIN_BUZZER 4
@@ -131,9 +132,9 @@ void runSequence(const BuzzEvent *events, int eventCount, int duration,
   unsigned long startMillis = millis();
 
   for (int elapsed = 0; elapsed <= duration; elapsed++) {
-    // Current target start of this second is startMillis + (elapsed * 1000)
-    // Wait for it if we are still ahead (unlikely normally, but handles lead-in)
-    unsigned long targetStart = startMillis + (unsigned long)elapsed * 1000;
+    // Current target start of this second is startMillis + (elapsed * MILLIS_PER_SECOND)
+    unsigned long targetStart =
+        startMillis + (unsigned long)elapsed * MILLIS_PER_SECOND;
     while (millis() < targetStart) {
       // Small spin wait for absolute precision at start of second
     }

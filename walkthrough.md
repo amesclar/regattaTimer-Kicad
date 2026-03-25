@@ -140,4 +140,7 @@ The system was updated to synchronize communication at 115200 baud and minimize 
 3. **Validation Reporting**: Updated `rt_data_validation.py` to report errors using `iteration` and `testsequence` labels (e.g., `Iter 1 [5min]`) for better alignment with test logs.
 
 ### Verification Results
-Running the updated validation script against the 5min test logs accurately identifies failures by iteration. With the SUT timing fix, the reported duration for a 5min test is reduced from ~301.57s to ~301.17s (closer to the 1.5s tolerance).
+Running the updated validation script against the 5min test logs accurately identifies failures by iteration. All buzzer activations are now correctly captured, even when they occur after the `EndEvent` log.
+
+### Software Calibration (Drift <250ms)
+To achieve the <250ms max drift target, a software calibration constant `MILLIS_PER_SECOND` was introduced. For the current hardware, setting this to `996` successfully compensates for resonator variance. Polling jitter in the serial monitor was also reduced to 1ms.
