@@ -508,7 +508,7 @@
 		(descr "Through hole straight socket strip, 1x02, 2.54mm pitch, single row (from Kicad 4.0.7), script generated")
 		(tags "Through hole socket strip THT 1x02 2.54mm single row")
 		(property "Reference" "J10-12v-In1"
-			(at -3.025 0.95 90)
+			(at -3.9 1.95 90)
 			(layer "F.SilkS")
 			(uuid "9e74a883-462f-4307-8b9e-9f4989f42428")
 			(effects
@@ -6728,10 +6728,10 @@
 		(layer "Edge.Cuts")
 		(uuid "4db5643a-f7d1-4437-a192-197698b26f45")
 	)
-	(gr_text "GND"
-		(at 192.3 51.8 0)
+	(gr_text "5vOut"
+		(at 191.109523 54.5 0)
 		(layer "F.SilkS")
-		(uuid "4bd36795-8777-475d-850f-3c4dcc7b09f3")
+		(uuid "7f343d67-c2e1-4fb6-a80d-a6433fbace12")
 		(effects
 			(font
 				(size 1 1)
@@ -6740,10 +6740,22 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "5vOut"
-		(at 191.109523 54.5 0)
+	(gr_text "12vIn"
+		(at 191.3 49 0)
 		(layer "F.SilkS")
-		(uuid "7f343d67-c2e1-4fb6-a80d-a6433fbace12")
+		(uuid "b1fd78e9-196e-4a75-90b9-f7e321604f4b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "GND"
+		(at 192.3 51.8 0)
+		(layer "F.SilkS")
+		(uuid "4bd36795-8777-475d-850f-3c4dcc7b09f3")
 		(effects
 			(font
 				(size 1 1)
@@ -6762,18 +6774,6 @@
 				(thickness 0.15)
 			)
 			(justify bottom)
-		)
-	)
-	(gr_text "12vIn"
-		(at 191.3 49 0)
-		(layer "F.SilkS")
-		(uuid "b1fd78e9-196e-4a75-90b9-f7e321604f4b")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-			(justify left bottom)
 		)
 	)
 	(segment
