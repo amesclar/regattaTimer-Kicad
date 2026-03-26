@@ -132,7 +132,8 @@ void runSequence(const BuzzEvent *events, int eventCount, int duration,
   unsigned long startMillis = millis();
 
   for (int elapsed = 0; elapsed <= duration; elapsed++) {
-    // Current target start of this second is startMillis + (elapsed * MILLIS_PER_SECOND)
+    // Current target start of this second is startMillis + (elapsed *
+    // MILLIS_PER_SECOND)
     unsigned long targetStart =
         startMillis + (unsigned long)elapsed * MILLIS_PER_SECOND;
     while (millis() < targetStart) {
@@ -172,12 +173,13 @@ void runSequence(const BuzzEvent *events, int eventCount, int duration,
       playBuzzes(lCount, sCount, elapsed, name);
     }
 
-    if (elapsed == duration) break;
+    if (elapsed == duration)
+      break;
 
-    // No need for a simple delay here. We will catch up in the NEXT loop iteration
-    // using the 'while (millis() < targetStart)' logic for the next 'elapsed'.
+    // No need for a simple delay here. We will catch up in the NEXT loop
+    // iteration using the 'while (millis() < targetStart)' logic for the next
+    // 'elapsed'.
   }
-
 
   // Clear display or leave 00:00? Spec doesn't say.
   // Usually regatta timers stay at 00:00 or reset.
