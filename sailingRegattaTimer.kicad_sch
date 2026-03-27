@@ -2289,10 +2289,10 @@
 		(uuid "7dad97f8-c9ea-4829-95c1-cf72736a9bc8")
 	)
 	(junction
-		(at 179.07 128.27)
+		(at 171.45 123.19)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "9d6fca40-88f3-4d8a-827a-6321effcd13b")
+		(uuid "91284af3-6921-4adb-b765-c61df1d6448e")
 	)
 	(junction
 		(at 214.63 67.31)
@@ -2516,16 +2516,6 @@
 	)
 	(wire
 		(pts
-			(xy 171.45 128.27) (xy 179.07 128.27)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "631d1838-83c0-43aa-8f15-d62ad972855d")
-	)
-	(wire
-		(pts
 			(xy 195.58 115.57) (xy 191.77 115.57)
 		)
 		(stroke
@@ -2736,6 +2726,16 @@
 	)
 	(wire
 		(pts
+			(xy 171.45 123.19) (xy 171.45 146.05)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ce2a0e3a-822d-4f08-b5c3-5f1699775c29")
+	)
+	(wire
+		(pts
 			(xy 222.25 54.61) (xy 224.79 54.61)
 		)
 		(stroke
@@ -2874,16 +2874,6 @@
 		)
 		(uuid "f343694d-7a12-4265-a3f8-de70774ee354")
 	)
-	(wire
-		(pts
-			(xy 171.45 128.27) (xy 171.45 146.05)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fb4fba31-d5dd-4b47-833c-421907e19d4d")
-	)
 	(symbol
 		(lib_id "Connector:Conn_01x04_Socket")
 		(at 191.77 46.99 0)
@@ -2953,7 +2943,7 @@
 			(uuid "90fb139c-fcf1-438a-bf89-3778d1996d6a")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J8-Pololu-VReg1")
 					(unit 1)
@@ -3027,7 +3017,7 @@
 			(uuid "0e80cd89-a37f-4562-aee4-9b4839244d19")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J9-Relay1")
 					(unit 1)
@@ -3362,7 +3352,7 @@
 			(uuid "cb0a0005-7353-47c6-bd2e-89fc186ef1dd")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J4-Blu-5M1")
 					(unit 1)
@@ -3636,7 +3626,7 @@
 			(uuid "b7704348-1fd9-49ea-b8d3-07b618e9970d")
 		)
 		(instances
-			(project "kicad"
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "SW3-Grn-3M1")
 					(unit 1)
@@ -4043,7 +4033,7 @@
 			(uuid "60af6407-7704-404b-bccd-fd8db4ae3b0c")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "D1-LED1")
 					(unit 1)
@@ -4333,7 +4323,7 @@
 			(uuid "48fe0ff7-c620-4dbc-9ad7-57570e15c9c8")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "A1")
 					(unit 1)
@@ -4404,7 +4394,7 @@
 			(uuid "cb0a0005-7353-47c6-bd2e-89fc186ef1de")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J6-Reset1")
 					(unit 1)
@@ -4993,7 +4983,7 @@
 			(uuid "81f5b987-ab46-44be-9e16-8d983f0d2d4e")
 		)
 		(instances
-			(project "kicad"
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "SW2-Yel-2M1")
 					(unit 1)
@@ -5065,7 +5055,7 @@
 			(uuid "ab4aa771-af27-40cf-bd72-bb3208dadf8e")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J1-Red-1M1")
 					(unit 1)
@@ -5201,7 +5191,7 @@
 			(uuid "80554b32-ce69-4e87-a8dc-ec29329d8b17")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "#PWR06")
 					(unit 1)
@@ -5271,7 +5261,7 @@
 			(uuid "7ec7c339-fd40-4975-9f2d-be656e007dfc")
 		)
 		(instances
-			(project "kicad"
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "R5")
 					(unit 1)
@@ -5468,7 +5458,7 @@
 			(uuid "e9fa9aee-9bbd-4975-ac45-97ba4fa905f5")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "BZ1")
 					(unit 1)
@@ -5602,7 +5592,7 @@
 			(uuid "ab4aa771-af27-40cf-bd72-bb3208dadf90")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J2-Yel-2M1")
 					(unit 1)
@@ -5928,7 +5918,7 @@
 			(uuid "2452fd0f-6bc1-440e-8042-274fb0de4f67")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "SW1-Red-1M1")
 					(unit 1)
@@ -5999,7 +5989,7 @@
 			(uuid "cb0a0005-7353-47c6-bd2e-89fc186ef1df")
 		)
 		(instances
-			(project ""
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J5-5v-LED1")
 					(unit 1)
@@ -6073,7 +6063,7 @@
 			(uuid "451a6f77-526a-4c2a-a208-dd185eccaa67")
 		)
 		(instances
-			(project "kicad"
+			(project "sailingRegattaTimer"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "SW4-Blu-5M1")
 					(unit 1)
