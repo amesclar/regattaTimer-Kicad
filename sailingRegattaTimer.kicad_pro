@@ -400,10 +400,6 @@
         ""
       ],
       [
-        "pin_not_connected|1435100|622300|799d6ce3-d2a8-4f85-9a88-37896cdcbe96|00000000-0000-0000-0000-000000000000|/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55|/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55|",
-        ""
-      ],
-      [
         "pin_not_connected|1765300|1003300|7c03b2ed-1f6f-4243-92ed-a7a4ae53d5b3|00000000-0000-0000-0000-000000000000|/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55|/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55|",
         ""
       ],
@@ -841,7 +837,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "productionFiles/",
+      "plot": "/home/fred/Arduino/regattaTimer-Kicad/productionFiles/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",

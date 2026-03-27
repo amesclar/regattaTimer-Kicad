@@ -44,15 +44,15 @@ The log attributes for the sequence name (`whichtest`) and time must be consiste
 * **Type**: Active buzzer.
 
 ### Input Buttons
-| Button Label | Pin | Pin Mode | Required External Component |
+| Button Label | Pin | Pin Mode | Notes |
 | :--- | :--- | :--- | :--- |
-| **1min** | **2** | `INPUT` | External Pull-Down Resistor |
-| **2min** | **7** | `INPUT` | External Pull-Down Resistor |
-| **3min** | **8** | `INPUT` | External Pull-Down Resistor |
-| **5min** | **12** | `INPUT` | External Pull-Down Resistor |
+| **1min** | **2** | `INPUT` | Internal Pull-Up Resistor |
+| **2min** | **7** | `INPUT` | Internal Pull-Up Resistor |
+| **3min** | **8** | `INPUT` | Internal Pull-Up Resistor |
+| **5min** | **12** | `INPUT` | Internal Pull-Up Resistor |
 
-* **Behavior**: High signal (`HIGH`) indicates button press.
-* **Debounce**: **200ms** software debounce applied only during button check (`checkButtons`).
+* **Behavior**: Low signal (`LOW`) indicates button press.
+* **Debounce**: **50ms** software debounce applied only during button check (`checkButtons`).
 
 ---
 

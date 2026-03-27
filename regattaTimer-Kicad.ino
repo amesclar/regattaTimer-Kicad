@@ -1,312 +1,83 @@
-// Gemini
-// 20251204-093028-
+/*
+ * Sailing Regatta Timer
+ * Based on regatta-timer-ai-spec.md
+ *
+ * Target: Arduino UNO
+ * Pins:
+ *  - Display CLK: 3
+ *  - Display DIO: 5
+ *  - Buzzer: 4
+ *  - Buttons: 2 (1min), 7 (2min), 8 (3min), 12 (5min)
+ *
+ * Logging: Serial 9600, JUnit XML format
+ */
+
+#include <Arduino.h>
 #include <TM1637Display.h>
+#include <avr/pgmspace.h>
 
-// ==========================================
-// 📌 Pin and Timing Definitions
-// ==========================================
-#define CLK_PIN 3
-#define DIO_PIN 5
-#define BUZZER_PIN 4
+// --- Configuration ---
+#define BAUD_RATE 115200
+#define MILLIS_PER_SECOND 996 // Calibrated to specific SUT hardware
+#define PIN_CLK 3
+#define PIN_DIO 5
+#define PIN_BUZZER 4
+#define PIN_BTN_1MIN 2
+#define PIN_BTN_2MIN 7
+#define PIN_BTN_3MIN 8
+#define PIN_BTN_5MIN 12
 
-#define BTN_1MIN 2
-#define BTN_2MIN 7
-#define BTN_3MIN 8
-#define BTN_5MIN 12
+#define DISPLAY_BRIGHTNESS 0x0f
 
-// Buzzer Timings (ms)
 #define BUZZ_LONG_MS 400
 #define BUZZ_SHORT_MS 150
 #define BUZZ_GAP_MS 150
-#define TIMER_INTERVAL_MS 1000 // Time for each countdown step
+#define TIMER_INTERVAL_MS 1000
 
-// Button Debounce
-#define DEBOUNCE_TIME 200 // ms
-
-// ==========================================
-// 🧩 Data Structures and Schedules
-// ==========================================
-
+// --- Data Structures ---
 struct BuzzEvent {
-  int seconds;    // Elapsed time (s) when to trigger
-  int longCount;  // Number of long buzzes
-  int shortCount; // Number of short buzzes
+  int seconds;        // Elapsed time (s) when to use this event
+  uint8_t longCount;  // Number of long buzzes
+  uint8_t shortCount; // Number of short buzzes
 };
 
-// --- Sequence Schedules (using PROGMEM) ---
-const BuzzEvent sequence_1min[] PROGMEM = {
-  {0, 1, 0}, {30, 0, 3}, {40, 0, 2}, {50, 0, 1},
-  {55, 0, 1}, {56, 0, 1}, {57, 0, 1}, {58, 0, 1},
-  {59, 0, 1}, {60, 1, 0}
-};
-const int size_1min = sizeof(sequence_1min) / sizeof(BuzzEvent);
+// --- Sequences (PROGMEM) ---
 
-const BuzzEvent sequence_2min[] PROGMEM = {
-  {0, 2, 0}, {30, 1, 3}, {60, 1, 0}, {90, 0, 3},
-  {100, 0, 2}, {110, 0, 1}, {115, 0, 1}, {116, 0, 1},
-  {117, 0, 1}, {118, 0, 1}, {119, 0, 1}, {120, 1, 0}
-};
-const int size_2min = sizeof(sequence_2min) / sizeof(BuzzEvent);
+// 1-Minute Sequence
+const BuzzEvent seq1Min[] PROGMEM = {
+    {0, 1, 0},  {30, 0, 3}, {40, 0, 2}, {50, 0, 1}, {55, 0, 1},
+    {56, 0, 1}, {57, 0, 1}, {58, 0, 1}, {59, 0, 1}, {60, 1, 0}};
 
-const BuzzEvent sequence_3min[] PROGMEM = {
-  {0, 3, 0}, {60, 2, 0}, {90, 1, 3}, {120, 1, 0},
-  {150, 0, 3}, {160, 0, 2}, {170, 0, 1}, {175, 0, 1},
-  {176, 0, 1}, {177, 0, 1}, {178, 0, 1}, {179, 0, 1},
-  {180, 1, 0}
-};
-const int size_3min = sizeof(sequence_3min) / sizeof(BuzzEvent);
+// 2-Minute Sequence
+const BuzzEvent seq2Min[] PROGMEM = {{0, 2, 0},   {30, 1, 3},  {60, 1, 0},
+                                     {90, 0, 3},  {100, 0, 2}, {110, 0, 1},
+                                     {115, 0, 1}, {116, 0, 1}, {117, 0, 1},
+                                     {118, 0, 1}, {119, 0, 1}, {120, 1, 0}};
 
-const BuzzEvent sequence_5min[] PROGMEM = {
-  {0, 1, 0}, {60, 1, 0}, {240, 1, 0}, {300, 1, 0}
-};
-const int size_5min = sizeof(sequence_5min) / sizeof(BuzzEvent);
+// 3-Minute Sequence
+const BuzzEvent seq3Min[] PROGMEM = {
+    {0, 3, 0},   {60, 2, 0},  {90, 1, 3},  {120, 1, 0}, {150, 0, 3},
+    {160, 0, 2}, {170, 0, 1}, {175, 0, 1}, {176, 0, 1}, {177, 0, 1},
+    {178, 0, 1}, {179, 0, 1}, {180, 1, 0}};
 
+// 5-Minute Sequence
+const BuzzEvent seq5Min[] PROGMEM = {
+    {0, 1, 0}, {60, 1, 0}, {240, 1, 0}, {300, 1, 0}};
 
-// ==========================================
-// ⚙️ Global State Variables
-// ==========================================
-TM1637Display display(CLK_PIN, DIO_PIN);
+// --- Globals ---
+TM1637Display display(PIN_CLK, PIN_DIO);
 
-// Timer State
-bool timerRunning = false;
-int currentDuration = 0;
-int currentSequenceID = 0;
-const BuzzEvent* activeSchedule;
-int scheduleSize = 0;
+// --- Functions ---
 
-// NEW: Variable to hold the descriptive name (e.g., "1min")
-const char* currentSequenceName = "unknown";
+void playBuzzes(int longCount, int shortCount, int elapsed,
+                const char *testName) {
+  // Log BuzzerEvent
+  // Time spent here contributes to the second tick, but we log the start of it.
+  // Format: <testcase classname="BuzzerEvent" whichtest="1min" elapsed="30"
+  // type="Buzzer" longcount="0" shortcount="3"/>
 
-// Button Debounce
-unsigned long lastButtonPress = 0;
-
-// ==========================================
-// 🎤 Function Prototypes
-// ==========================================
-void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int size);
-void executeBuzzSequence(int longCount, int shortCount);
-void updateDisplay(int seconds);
-void checkButtons(unsigned long currentMillis);
-void logBuzzerEvent(int elapsed, int longCount, int shortCount); // MODIFIED
-void logStartEvent(const char* sequenceName);
-void logEndEvent(); // MODIFIED
-
-
-// ==========================================
-// 🚀 Setup
-// ==========================================
-void setup() {
-  Serial.begin(9600);
-  while (!Serial);
-
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
-
-  // Initialize Button Pins
-  pinMode(BTN_1MIN, INPUT);
-  pinMode(BTN_2MIN, INPUT);
-  pinMode(BTN_3MIN, INPUT);
-  pinMode(BTN_5MIN, INPUT);
-
-  // Stabilize inputs
-  digitalRead(BTN_1MIN);
-  digitalRead(BTN_2MIN);
-  digitalRead(BTN_3MIN);
-  digitalRead(BTN_5MIN);
-
-  display.setBrightness(0x0f);
-  updateDisplay(0);
-
-  // Initialize debounce timer
-  lastButtonPress = millis();
-
-  Serial.println(F("Sailing Regatta Timer Ready"));
-}
-
-// ==========================================
-// 🔁 Main Loop (SIMPLE BUTTON CHECK ONLY)
-// ==========================================
-void loop() {
-  checkButtons(millis());
-}
-
-// ==========================================
-// 🛠️ Core Logic Functions
-// ==========================================
-
-/**
- * @brief Checks for button presses and starts a timer.
- */
-void checkButtons(unsigned long currentMillis) {
-  if (timerRunning) {
-    return;
-  }
-
-  if (currentMillis - lastButtonPress < DEBOUNCE_TIME) {
-    return;
-  }
-
-  // Read current button states (Active HIGH)
-  if (digitalRead(BTN_1MIN) == HIGH) {
-    startTimer(60, 1, sequence_1min, size_1min);
-    lastButtonPress = currentMillis;
-  }
-  else if (digitalRead(BTN_2MIN) == HIGH) {
-    startTimer(120, 2, sequence_2min, size_2min);
-    lastButtonPress = currentMillis;
-  }
-  else if (digitalRead(BTN_3MIN) == HIGH) {
-    startTimer(180, 3, sequence_3min, size_3min);
-    lastButtonPress = currentMillis;
-  }
-  else if (digitalRead(BTN_5MIN) == HIGH) {
-    startTimer(300, 5, sequence_5min, size_5min);
-    lastButtonPress = currentMillis;
-  }
-}
-
-
-/**
- * @brief Initializes and executes the regatta timer sequence (BLOCKING).
- */
-void startTimer(int duration, int sequenceID, const BuzzEvent* schedule, int size) {
-  // 1. Setup globals
-  currentDuration = duration;
-  currentSequenceID = sequenceID;
-  activeSchedule = schedule;
-  scheduleSize = size;
-  timerRunning = true;
-  int nextEventIndex = 0;
-
-  // 2. CHECK and EXECUTE T=0 BUZZER EVENT (Don't log yet!)
-  bool t0_event_occurred = false;
-  int t0_long = 0;
-  int t0_short = 0;
-
-  if (nextEventIndex < scheduleSize) {
-    BuzzEvent event;
-    memcpy_P(&event, activeSchedule + nextEventIndex, sizeof(BuzzEvent));
-
-    if (event.seconds == 0) {
-        // Execute the physical buzz now.
-        executeBuzzSequence(event.longCount, event.shortCount);
-
-        // Save logging data and advance index, but don't log until after StartEvent.
-        t0_long = event.longCount;
-        t0_short = event.shortCount;
-        nextEventIndex++;
-        t0_event_occurred = true;
-    }
-  }
-
-  // 3. Set the descriptive name globally
-  switch (duration) {
-      case 60: currentSequenceName = "1min"; break;
-      case 120: currentSequenceName = "2min"; break;
-      case 180: currentSequenceName = "3min"; break;
-      case 300: currentSequenceName = "5min"; break;
-      default: currentSequenceName = "unknown"; break;
-  }
-
-  // 4. Log start (MUST COME FIRST IN THE LOG)
-  logStartEvent(currentSequenceName);
-
-  // 5. Log t=0 Buzzer event (MUST COME SECOND IN THE LOG)
-  if (t0_event_occurred) {
-      logBuzzerEvent(0, t0_long, t0_short);
-  }
-
-  updateDisplay(currentDuration);
-
-  // 6. Main Countdown Loop (starts from 1 second elapsed)
-  for (int elapsedSeconds = 1; elapsedSeconds <= currentDuration; elapsedSeconds++) {
-    unsigned long startTime = millis();
-
-    // Check for buzzer events at the current elapsed second
-    if (nextEventIndex < scheduleSize) {
-      BuzzEvent event;
-      memcpy_P(&event, activeSchedule + nextEventIndex, sizeof(BuzzEvent));
-
-      if (elapsedSeconds == event.seconds) {
-        logBuzzerEvent(elapsedSeconds, event.longCount, event.shortCount);
-        executeBuzzSequence(event.longCount, event.shortCount);
-        nextEventIndex++;
-      }
-    }
-
-    // Update display and delay
-    int remaining = currentDuration - elapsedSeconds;
-    updateDisplay(remaining);
-
-    unsigned long timeElapsedInLoop = millis() - startTime;
-    if (timeElapsedInLoop < TIMER_INTERVAL_MS) {
-      delay(TIMER_INTERVAL_MS - timeElapsedInLoop);
-    }
-  }
-
-  // 7. Cleanup and Exit
-  logEndEvent();
-  timerRunning = false;
-  updateDisplay(0);
-}
-
-
-/**
- * @brief Executes a buzzer sequence (BLOCKING).
- */
-void executeBuzzSequence(int longCount, int shortCount) {
-  // A long buzz sequence
-  for (int i = 0; i < longCount; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(BUZZ_LONG_MS);
-    digitalWrite(BUZZER_PIN, LOW);
-    if (i < longCount - 1 || shortCount > 0) {
-      delay(BUZZ_GAP_MS); // Gap between buzzes
-    }
-  }
-
-  // A short buzz sequence
-  for (int i = 0; i < shortCount; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(BUZZ_SHORT_MS);
-    digitalWrite(BUZZER_PIN, LOW);
-    if (i < shortCount - 1) {
-      delay(BUZZ_GAP_MS); // Gap between short buzzes
-    }
-  }
-
-  digitalWrite(BUZZER_PIN, LOW);
-}
-
-
-// ==========================================
-// 📊 Utility & Logging Functions
-// ==========================================
-
-/**
- * @brief Formats and shows time on the TM1637 display.
- */
-void updateDisplay(int secondsRemaining) {
-  int minutes = secondsRemaining / 60;
-  int seconds = secondsRemaining % 60;
-  display.showNumberDecEx(minutes * 100 + seconds, 0b01000000, true);
-}
-
-/**
- * @brief Logs the start of the timer sequence.
- */
-void logStartEvent(const char* sequenceName) {
-  Serial.print(F("<testcase classname=\"StartEvent\" whichtest=\""));
-  Serial.print(sequenceName);
-  Serial.println(F("\" elapsed=\"0\" type=\"Start\"/>"));
-}
-
-/**
- * @brief Logs a buzzer event in XML format (USING GLOBAL NAME).
- */
-void logBuzzerEvent(int elapsed, int longCount, int shortCount) {
-  Serial.print(F("<testcase classname=\"BuzzerEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
-  Serial.print(currentSequenceName); // USING GLOBAL NAME
+  Serial.print(F("<testcase classname=\"BuzzerEvent\" whichtest=\""));
+  Serial.print(testName);
   Serial.print(F("\" elapsed=\""));
   Serial.print(elapsed);
   Serial.print(F("\" type=\"Buzzer\" longcount=\""));
@@ -314,15 +85,214 @@ void logBuzzerEvent(int elapsed, int longCount, int shortCount) {
   Serial.print(F("\" shortcount=\""));
   Serial.print(shortCount);
   Serial.println(F("\"/>"));
+
+  // Execute buzzes
+  // Pattern: Longs then Shorts (based on table order in spec "Long Buzzes |
+  // Short Buzzes") Spec doesn't explicitly define order but "Long ... Short"
+  // columns imply grouping.
+
+  for (int i = 0; i < longCount; i++) {
+    digitalWrite(PIN_BUZZER, HIGH);
+    delay(BUZZ_LONG_MS);
+    digitalWrite(PIN_BUZZER, LOW);
+    if (i < longCount - 1 || shortCount > 0) {
+      delay(BUZZ_GAP_MS);
+    }
+  }
+
+  for (int i = 0; i < shortCount; i++) {
+    digitalWrite(PIN_BUZZER, HIGH);
+    delay(BUZZ_SHORT_MS);
+    digitalWrite(PIN_BUZZER, LOW);
+    if (i < shortCount - 1) {
+      delay(BUZZ_GAP_MS);
+    }
+  }
 }
 
-/**
- * @brief Logs the end of the timer sequence in XML format (USING GLOBAL NAME).
- */
-void logEndEvent() {
-  Serial.print(F("<testcase classname=\"EndEvent\" whichtest=\"")); // UPDATED ATTRIBUTE
-  Serial.print(currentSequenceName); // USING GLOBAL NAME
-  Serial.print(F("\" elapsed=\""));
-  Serial.print(currentDuration);
-  Serial.println(F("\" type=\"End\"/>"));
+void updateDisplay(int secondsRemaining) {
+  // MM:SS format
+  int m = secondsRemaining / 60;
+  int s = secondsRemaining % 60;
+  // Format: minutes * 100 + seconds
+  // Colon bit mask: 0b01000000 (which is 0x40)
+  // showNumberDecEx(number, dots, leading_zeros)
+  // dots = 0x40 for colon (default in library usually, but spec says
+  // 0b01000000)
+  display.showNumberDecEx(m * 100 + s, 0b01000000, true);
+}
+
+void runSequence(const BuzzEvent *events, int eventCount, int duration,
+                 const char *name) {
+  // Log StartEvent
+  Serial.print(F("<testcase classname=\"StartEvent\" whichtest=\""));
+  Serial.print(name);
+  Serial.print(F("\" elapsed=\"0\" type=\"Start\"/>\n"));
+
+  unsigned long startMillis = millis();
+
+  for (int elapsed = 0; elapsed <= duration; elapsed++) {
+    // Current target start of this second is startMillis + (elapsed *
+    // MILLIS_PER_SECOND)
+    unsigned long targetStart =
+        startMillis + (unsigned long)elapsed * MILLIS_PER_SECOND;
+    while (millis() < targetStart) {
+      // Small spin wait for absolute precision at start of second
+    }
+
+    // Calculate Remaining Time
+    int remaining = duration - elapsed;
+    updateDisplay(remaining);
+
+    // Check for events
+    int lCount = 0;
+    int sCount = 0;
+    bool doBuzz = false;
+    for (int i = 0; i < eventCount; i++) {
+      int evSeconds = (int)pgm_read_word(&events[i].seconds);
+      if (evSeconds == elapsed) {
+        BuzzEvent ev;
+        memcpy_P(&ev, &events[i], sizeof(BuzzEvent));
+        lCount = ev.longCount;
+        sCount = ev.shortCount;
+        doBuzz = true;
+        break;
+      }
+    }
+
+    if (elapsed == duration) {
+      // Log EndEvent before final buzzer to minimize reported duration drift
+      Serial.print(F("<testcase classname=\"EndEvent\" whichtest=\""));
+      Serial.print(name);
+      Serial.print(F("\" elapsed=\""));
+      Serial.print(elapsed);
+      Serial.println(F("\" type=\"End\"/>"));
+    }
+
+    if (doBuzz) {
+      playBuzzes(lCount, sCount, elapsed, name);
+    }
+
+    if (elapsed == duration)
+      break;
+
+    // No need for a simple delay here. We will catch up in the NEXT loop
+    // iteration using the 'while (millis() < targetStart)' logic for the next
+    // 'elapsed'.
+  }
+
+  // Clear display or leave 00:00? Spec doesn't say.
+  // Usually regatta timers stay at 00:00 or reset.
+  // We'll leave it at 00:00 as it was the last update.
+}
+
+// Track previous button states for edge detection, initialized to HIGH by
+// default
+int lastBtn1 = HIGH;
+int lastBtn2 = HIGH;
+int lastBtn3 = HIGH;
+int lastBtn5 = HIGH;
+
+void setup() {
+  Serial.begin(BAUD_RATE);
+
+  pinMode(PIN_CLK, OUTPUT);
+  pinMode(PIN_DIO, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT);
+
+  pinMode(PIN_BTN_1MIN, INPUT_PULLUP);
+  pinMode(PIN_BTN_2MIN, INPUT_PULLUP);
+  pinMode(PIN_BTN_3MIN, INPUT_PULLUP);
+  pinMode(PIN_BTN_5MIN, INPUT_PULLUP);
+
+  display.setBrightness(DISPLAY_BRIGHTNESS);
+  display.showNumberDecEx(0, 0b01000000, true); // initial 00:00
+
+  // Read initial state so we only trigger on CHANGES (switches from HIGH to
+  // LOW) This fixes the auto-start issue if a button is stuck LOW at boot.
+  lastBtn1 = digitalRead(PIN_BTN_1MIN);
+  lastBtn2 = digitalRead(PIN_BTN_2MIN);
+  lastBtn3 = digitalRead(PIN_BTN_3MIN);
+  lastBtn5 = digitalRead(PIN_BTN_5MIN);
+
+  Serial.println(F("--- SUT Boot ---"));
+  Serial.print(F("1m="));
+  Serial.print(digitalRead(PIN_BTN_1MIN));
+  Serial.print(F(" 2m="));
+  Serial.print(digitalRead(PIN_BTN_2MIN));
+  Serial.print(F(" 3m="));
+  Serial.print(digitalRead(PIN_BTN_3MIN));
+  Serial.print(F(" 5m="));
+  Serial.println(digitalRead(PIN_BTN_5MIN));
+  Serial.println(F("Ready for buttons..."));
+}
+
+void loop() {
+  // Read current states
+  int btn1 = digitalRead(PIN_BTN_1MIN);
+  int btn2 = digitalRead(PIN_BTN_2MIN);
+  int btn3 = digitalRead(PIN_BTN_3MIN);
+  int btn5 = digitalRead(PIN_BTN_5MIN);
+
+  // Check for Press (HIGH to LOW transition)
+  // 1 Minute Button
+  if (lastBtn1 == HIGH && btn1 == LOW) {
+    delay(50);
+    if (digitalRead(PIN_BTN_1MIN) == LOW) {
+      runSequence(seq1Min, sizeof(seq1Min) / sizeof(BuzzEvent), 60, "1min");
+      // Update states after blocking sequence
+      lastBtn1 = digitalRead(PIN_BTN_1MIN);
+      lastBtn2 = digitalRead(PIN_BTN_2MIN);
+      lastBtn3 = digitalRead(PIN_BTN_3MIN);
+      lastBtn5 = digitalRead(PIN_BTN_5MIN);
+      return;
+    }
+  }
+
+  // 2 Minute Button
+  else if (lastBtn2 == HIGH && btn2 == LOW) {
+    delay(50);
+    if (digitalRead(PIN_BTN_2MIN) == LOW) {
+      runSequence(seq2Min, sizeof(seq2Min) / sizeof(BuzzEvent), 120, "2min");
+      lastBtn1 = digitalRead(PIN_BTN_1MIN);
+      lastBtn2 = digitalRead(PIN_BTN_2MIN);
+      lastBtn3 = digitalRead(PIN_BTN_3MIN);
+      lastBtn5 = digitalRead(PIN_BTN_5MIN);
+      return;
+    }
+  }
+
+  // 3 Minute Button
+  else if (lastBtn3 == HIGH && btn3 == LOW) {
+    delay(50);
+    if (digitalRead(PIN_BTN_3MIN) == LOW) {
+      runSequence(seq3Min, sizeof(seq3Min) / sizeof(BuzzEvent), 180, "3min");
+      lastBtn1 = digitalRead(PIN_BTN_1MIN);
+      lastBtn2 = digitalRead(PIN_BTN_2MIN);
+      lastBtn3 = digitalRead(PIN_BTN_3MIN);
+      lastBtn5 = digitalRead(PIN_BTN_5MIN);
+      return;
+    }
+  }
+
+  // 5 Minute Button
+  else if (lastBtn5 == HIGH && btn5 == LOW) {
+    delay(50);
+    if (digitalRead(PIN_BTN_5MIN) == LOW) {
+      runSequence(seq5Min, sizeof(seq5Min) / sizeof(BuzzEvent), 300, "5min");
+      lastBtn1 = digitalRead(PIN_BTN_1MIN);
+      lastBtn2 = digitalRead(PIN_BTN_2MIN);
+      lastBtn3 = digitalRead(PIN_BTN_3MIN);
+      lastBtn5 = digitalRead(PIN_BTN_5MIN);
+      return;
+    }
+  }
+
+  // Update last states
+  lastBtn1 = btn1;
+  lastBtn2 = btn2;
+
+  lastBtn3 = btn3;
+  lastBtn5 = btn5;
+  delay(10); // Small loop delay
 }
