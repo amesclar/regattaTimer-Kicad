@@ -1,3 +1,4 @@
+<<debug sequence 1>>
 # step 1
 The Test Framework is verified. I am now transitioning to the SUT (Regatta Timer) code to determine why the buzzer/horn output is not providing the expected 12V signal. I will start by analyzing the initialization and activation logic for the buzzer/horn in the SUT sketch.
 
@@ -234,3 +235,17 @@ Disconnect the path to ground: Find where the Relay COM terminal is touching a G
 Verify: With the power OFF, measure from Relay COM to GND again. It should now show no continuity (Open circuit).
 
 Test: Once COM is floating, your voltage divider will finally "see" the 12V, and the Test Framework will start logging the voltage events correctly.
+
+
+<<<debug sequence 2>>>
+Since the Test Framework works 100% with a battery, but shows 0V with the SUT, the failure is definitively in the SUT's relay output wiring. Your previous finding about the Relay COM being shorted to Ground is the most likely cause.
+
+Next Steps:
+Disconnect the COM-to-GND short on your SUT relay.
+
+# step 1
+relay com to pin 4 test FW (10k resistor) - continuity
+
+<<<debug sequence 3>>>
+# step 1
+Relay COM to Arduino GND - no continuity
